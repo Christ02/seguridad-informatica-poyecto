@@ -5,6 +5,7 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
+import { AuthModule } from './modules/auth/auth.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import mongodbConfig from './config/mongodb.config';
@@ -35,6 +36,7 @@ import mongodbConfig from './config/mongodb.config';
 
     // Feature Modules
     UsersModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

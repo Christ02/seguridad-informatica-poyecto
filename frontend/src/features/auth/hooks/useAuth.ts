@@ -3,56 +3,45 @@
  * Hook personalizado para gestión de autenticación
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { apiService } from '@services/api.service';
-import type { LoginCredentials, User, AuthTokens } from '@types/index';
+import { authApi, LoginCredentials } from '@services/auth.api';
+import { User } from '@/types';
 
 export function useAuth() {
   const { user, setUser, clearUser, isAuthenticated } = useAuthStore();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check authentication status on mount
-  useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = useCallback(async () => {
-    try {
-      const currentUser = await apiService.get<User>('/auth/me');
-      setUser(currentUser);
-    } catch {
-      clearUser();
-    }
-  }, [setUser, clearUser]);
-
   const login = useCallback(
-    async (credentials: LoginCredentials): Promise<{success: boolean; requiresMFA?: boolean}> => {
+    async (credentials: LoginCredentials): Promise<{
+      success: boolean; 
+      requiresMFA?: boolean;
+      user?: User;
+      accessToken?: string;
+      refreshToken?: string;
+    }> => {
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await apiService.post<{
-          user?: User;
-          tokens?: AuthTokens;
-          requiresMFA?: boolean;
-        }>('/auth/login', credentials);
+        const response = await authApi.login(credentials);
 
-        if (response.requiresMFA) {
-          return { success: false, requiresMFA: true };
-        }
-
-        if (response.user) {
-          setUser(response.user);
-          return { success: true };
+        if (response.user && response.accessToken) {
+          setUser(response.user as User);
+          return { 
+            success: true, 
+            user: response.user as User,
+            accessToken: response.accessToken,
+            refreshToken: response.refreshToken
+          };
         }
 
         return { success: false };
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      } catch (err: any) {
+        const errorMessage = err?.response?.data?.message || err?.message || 'Login failed';
         setError(errorMessage);
-        return { success: false };
+        throw err;
       } finally {
         setIsLoading(false);
       }

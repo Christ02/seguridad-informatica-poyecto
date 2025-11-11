@@ -60,53 +60,40 @@ export function LoginForm() {
     const sanitizedEmail = sanitizeEmail(email);
     const sanitizedPassword = sanitizeText(password);
 
-    // Intentar login
-    // TEMPORAL: Para demo, simular login exitoso
-    if (sanitizedEmail && sanitizedPassword) {
-      // Detectar si es admin (por convención: admin@xxx.com o ID específico)
-      const isAdmin = 
-        sanitizedEmail.toLowerCase().includes('admin') || 
-        email === '1234567890' || // ID de cédula de admin
-        email === 'admin';
+    // Intentar login REAL con backend
+    try {
+      const result = await login({
+        identifier: sanitizedEmail,
+        password: sanitizedPassword,
+        mfaCode: requiresMFA ? mfaCode : undefined,
+      });
 
-      // Simular un usuario autenticado
-      const user = {
-        id: isAdmin ? 'admin-1' : '1',
-        email: sanitizedEmail,
-        role: isAdmin ? UserRole.ADMIN : UserRole.VOTER,
-        isVerified: true,
-        mfaEnabled: false,
-        createdAt: new Date().toISOString(),
-      };
+      if (result.success && result.user) {
+        // Guardar usuario en el store
+        useAuthStore.getState().setUser(result.user);
+        
+        // Guardar tokens en sessionStorage (más seguro que localStorage)
+        if (result.accessToken) {
+          sessionStorage.setItem('accessToken', result.accessToken);
+        }
+        if (result.refreshToken) {
+          sessionStorage.setItem('refreshToken', result.refreshToken);
+        }
 
-      useAuthStore.getState().setUser(user);
-      
-      // Navegar al dashboard según el rol
-      if (isAdmin) {
-        navigate('/admin/dashboard');
-      } else {
-        navigate('/dashboard');
+        // Navegar al dashboard según el rol
+        const isAdmin = result.user.role === UserRole.ADMIN || result.user.role === UserRole.SUPER_ADMIN;
+        if (isAdmin) {
+          navigate('/admin/dashboard');
+        } else {
+          navigate('/dashboard');
+        }
       }
-      return;
-    }
-
-    /* 
-    // Código real de login (descomentar cuando el backend esté listo):
-    const result = await login({
-      email: sanitizedEmail,
-      password: sanitizedPassword,
-      mfaCode: requiresMFA ? mfaCode : undefined,
-    });
-
-    if (result.requiresMFA) {
-      setRequiresMFA(true);
-    } else if (result.success) {
-      navigate('/dashboard');
-    } else {
+    } catch (err: any) {
       setAttempts(attempts + 1);
-      setErrors({ general: error || 'Login fallido' });
+      setErrors({ 
+        general: err?.response?.data?.message || error || 'Credenciales inválidas. Verifica tu ID y contraseña.' 
+      });
     }
-    */
   };
 
   return (
