@@ -1,154 +1,107 @@
-version: '3.8'
+version: '3.9'
 
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: voting-postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: voting_system
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - voting-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d voting_system"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: voting-redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    volumes:
-      - redis_data:/data
-    networks:
-      - voting-network
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
-
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: voting-backend
-    restart: unless-stopped
-    ports:
-      - "3002:3002"
-    environment:
-      NODE_ENV: development
-      PORT: 3002
-      DATABASE_URL: postgresql://voting_admin:${DB_PASSWORD:-secure_password_change_me}@postgres:5432/voting_system?ssl=true
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
-      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_production}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change}
-      CRYPTO_SERVICE_URL: http://crypto-service:3003
-    volumes:
-      - ./backend/src:/app/src
-      - ./shared:/app/shared
-      - backend_logs:/app/logs
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-      crypto-service:
-        condition: service_healthy
-    networks:
-      - voting-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  crypto-service:
-    build:
-      context: ./crypto-service
-      dockerfile: Dockerfile
-    container_name: voting-crypto-service
-    restart: unless-stopped
-    ports:
-      - "3003:3003"
-    environment:
-      NODE_ENV: development
-      PORT: 3003
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
-    volumes:
-      - ./crypto-service/src:/app/src
-      - ./shared:/app/shared
-      - crypto_keys:/app/keys
-    depends_on:
-      redis:
-        condition: service_healthy
-    networks:
-      - voting-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
+  # Frontend - React + Vite
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       target: development
     container_name: voting-frontend
-    restart: unless-stopped
     ports:
-      - "5175:5175"
-    environment:
-      VITE_API_URL: http://localhost:3002
-      VITE_CRYPTO_SERVICE_URL: http://localhost:3003
+      - "3000:3000"
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-      - ./shared:/app/shared
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:4000/api/v1
+    networks:
+      - voting-network
     depends_on:
       - backend
+
+  # Backend - NestJS
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    container_name: voting-backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - PORT=4000
+      - DATABASE_URL=postgresql://voting_user:voting_pass@postgres:5432/voting_db
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - MONGODB_URI=mongodb://mongo:27017/voting_audit
+    networks:
+      - voting-network
+    depends_on:
+      - postgres
+      - redis
+      - mongo
+
+  # PostgreSQL - Base de datos principal
+  postgres:
+    image: postgres:16-alpine
+    container_name: voting-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=voting_user
+      - POSTGRES_PASSWORD=voting_pass
+      - POSTGRES_DB=voting_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - voting-network
+    command: >
+      postgres
+      -c ssl=on
+      -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+      -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+
+  # Redis - Cache y Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: voting-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - voting-network
+    command: redis-server --appendonly yes --requirepass redis_secure_pass
+
+  # MongoDB - Audit Logs (inmutables)
+  mongo:
+    image: mongo:7-jammy
+    container_name: voting-mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=mongo_admin
+      - MONGO_INITDB_ROOT_PASSWORD=mongo_secure_pass
+      - MONGO_INITDB_DATABASE=voting_audit
+    volumes:
+      - mongo_data:/data/db
     networks:
       - voting-network
 
-  monitoring:
-    build:
-      context: ./monitoring
-      dockerfile: Dockerfile
-    container_name: voting-monitoring
-    restart: unless-stopped
-    ports:
-      - "9090:9090"
-      - "3004:3004"
-    environment:
-      NODE_ENV: development
-      PORT: 3004
-      BACKEND_URL: http://backend:3002
-      POSTGRES_URL: postgresql://voting_admin:${DB_PASSWORD:-secure_password_change_me}@postgres:5432/voting_system
-      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
-    volumes:
-      - ./monitoring/src:/app/src
-      - monitoring_data:/app/data
-    depends_on:
-      - backend
-      - postgres
-      - redis
-    networks:
-      - voting-network
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3004/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  mongo_data:
+    driver: local
 
 networks:
   voting-network:
@@ -156,11 +109,3 @@ networks:
     ipam:
       config:
         - subnet: 172.20.0.0/16
-
-volumes:
-  postgres_data:
-  redis_data:
-  backend_logs:
-  crypto_keys:
-  monitoring_data:
-

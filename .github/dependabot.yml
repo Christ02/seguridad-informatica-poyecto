@@ -1,0 +1,79 @@
+# Dependabot configuration para actualizaciones automáticas de dependencias
+# Ayuda a mantener el sistema seguro con las últimas versiones
+
+version: 2
+updates:
+  # Frontend dependencies
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "Christ02"
+    labels:
+      - "dependencies"
+      - "frontend"
+      - "security"
+    # Agrupar actualizaciones menores y patches
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+      production-dependencies:
+        dependency-type: "production"
+    # Prioridad a actualizaciones de seguridad
+    versioning-strategy: increase
+
+  # Backend dependencies (cuando se cree)
+  - package-ecosystem: "npm"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "Christ02"
+    labels:
+      - "dependencies"
+      - "backend"
+      - "security"
+    groups:
+      development-dependencies:
+        dependency-type: "development"
+      production-dependencies:
+        dependency-type: "production"
+    versioning-strategy: increase
+
+  # Docker dependencies
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Christ02"
+    labels:
+      - "dependencies"
+      - "docker"
+      - "infrastructure"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "wednesday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "Christ02"
+    labels:
+      - "dependencies"
+      - "github-actions"
+      - "ci-cd"
+

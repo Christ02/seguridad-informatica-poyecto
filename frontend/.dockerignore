@@ -1,0 +1,42 @@
+# Node modules
+node_modules/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+.vite/
+
+# Environment variables (SEGURIDAD)
+.env
+.env.local
+.env.*.local
+
+# Tests
+coverage/
+.nyc_output/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Git
+.git/
+.gitignore
+
+# Temporary
+*.tmp
+*.temp
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
+

@@ -1,46 +1,68 @@
-# Multi-stage build for security
-FROM node:20-alpine AS builder
+# Multi-stage Dockerfile para seguridad
+
+# Stage 1: Development
+FROM node:20-alpine AS development
 
 WORKDIR /app
 
-# Copy package files
+# Instalar dependencias de seguridad
+RUN apk add --no-cache git
+
+# Copiar package files
 COPY package*.json ./
-COPY tsconfig*.json ./
-COPY vite.config.ts ./
-COPY tailwind.config.js ./
-COPY postcss.config.js ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Instalar dependencias
+RUN npm ci
 
-# Copy source code
-COPY src ./src
-COPY public ./public
-COPY index.html ./
+# Copiar código fuente
+COPY . .
 
-# Build application
+# Exponer puerto
+EXPOSE 3000
+
+# Comando de desarrollo con hot-reload
+CMD ["npm", "run", "dev"]
+
+# Stage 2: Build
+FROM node:20-alpine AS build
+
+WORKDIR /app
+
+# Copiar package files
+COPY package*.json ./
+
+# Instalar dependencias de producción
+RUN npm ci --only=production && \
+    npm cache clean --force
+
+# Copiar código fuente
+COPY . .
+
+# Build de producción
 RUN npm run build
 
-# Production stage
-FROM nginx:alpine
+# Stage 3: Production
+FROM nginx:alpine AS production
 
-# Copy custom nginx config
+# Copiar configuración de Nginx con security headers
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy built application
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Copiar archivos estáticos desde build
+COPY --from=build /app/dist /usr/share/nginx/html
 
-# Add security headers
-RUN echo 'add_header X-Frame-Options "DENY" always;' > /etc/nginx/conf.d/security-headers.conf && \
-    echo 'add_header X-Content-Type-Options "nosniff" always;' >> /etc/nginx/conf.d/security-headers.conf && \
-    echo 'add_header Referrer-Policy "no-referrer" always;' >> /etc/nginx/conf.d/security-headers.conf && \
-    echo 'add_header Permissions-Policy "geolocation=(), microphone=(), camera=()" always;' >> /etc/nginx/conf.d/security-headers.conf
+# Usuario no-root para seguridad
+RUN chown -R nginx:nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
-# Run as non-root user
-RUN addgroup -g 101 -S nginx && \
-    adduser -S -D -H -u 101 -h /var/cache/nginx -s /sbin/nologin -G nginx -g nginx nginx
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
 
+# Exponer puerto
 EXPOSE 80
+
+# Usuario no-root
+USER nginx
 
 CMD ["nginx", "-g", "daemon off;"]
 

@@ -1,3 +1,4 @@
+# GitHub Actions workflow para escaneo de seguridad automatizado
 name: Security Scan
 
 on:
@@ -6,10 +7,17 @@ on:
   pull_request:
     branches: [main, develop]
   schedule:
-    - cron: '0 0 * * 0' # Weekly on Sunday
+    # Ejecutar escaneo de seguridad todos los lunes a las 9 AM
+    - cron: '0 9 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: write
 
 jobs:
-  security-scan:
+  dependency-scan:
+    name: Dependency Vulnerability Scan
     runs-on: ubuntu-latest
     
     steps:
@@ -21,69 +29,118 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
+        working-directory: ./frontend
         run: npm ci
 
-      - name: Run ESLint security rules
-        run: npm run lint
-        continue-on-error: true
-
       - name: Run npm audit
+        working-directory: ./frontend
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
-      - name: Snyk Security Scan
+      - name: Run Snyk Security Scan
         uses: snyk/actions/node@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high
+          command: test
 
-      - name: Trivy container scan
-        uses: aquasecurity/trivy-action@master
+  code-quality:
+    name: Code Quality & Security Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
+      - name: Install dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run ESLint (Security Rules)
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Run TypeScript Compiler
+        working-directory: ./frontend
+        run: npx tsc --noEmit
+
+  secrets-scan:
+    name: Secrets & Credentials Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          sarif_file: 'trivy-results.sarif'
+          fetch-depth: 0 # Fetch all history for scanning
 
-      - name: Check for secrets
+      - name: TruffleHog Secrets Scan
         uses: trufflesecurity/trufflehog@main
         with:
           path: ./
           base: ${{ github.event.repository.default_branch }}
           head: HEAD
 
-      - name: OWASP Dependency Check
-        uses: dependency-check/Dependency-Check_Action@main
-        with:
-          project: 'voting-system'
-          path: '.'
-          format: 'HTML'
-          
-      - name: Upload dependency check results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: dependency-check-report
-          path: ${{github.workspace}}/reports
+  container-scan:
+    name: Docker Container Security Scan
+    runs-on: ubuntu-latest
 
-      - name: Security summary
-        if: always()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
         run: |
-          echo "## Security Scan Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- npm audit: Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Snyk scan: Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Trivy scan: Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Secret detection: Completed" >> $GITHUB_STEP_SUMMARY
-          echo "- Dependency check: Completed" >> $GITHUB_STEP_SUMMARY
+          docker build -t voting-frontend:${{ github.sha }} ./frontend
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'voting-frontend:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  # SAST - Static Application Security Testing
+  codeql:
+    name: CodeQL SAST Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript-typescript'
+          queries: security-extended
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
 
