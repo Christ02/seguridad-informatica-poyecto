@@ -1,0 +1,176 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: voting-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: voting_admin
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password_change_me}
+      POSTGRES_DB: voting_system
+    ports:
+      - "5434:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./backend/src/database/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - voting-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U voting_admin -d voting_system"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: 
+      - "postgres"
+      - "-c"
+      - "ssl=on"
+      - "-c"
+      - "ssl_cert_file=/var/lib/postgresql/server.crt"
+      - "-c"
+      - "ssl_key_file=/var/lib/postgresql/server.key"
+
+  redis:
+    image: redis:7-alpine
+    container_name: voting-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - voting-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secure_pass}
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: voting-backend
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: development
+      PORT: 3002
+      DATABASE_URL: postgresql://voting_admin:${DB_PASSWORD:-secure_password_change_me}@postgres:5432/voting_system?ssl=true
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
+      JWT_SECRET: ${JWT_SECRET:-dev_jwt_secret_change_in_production}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change}
+      CRYPTO_SERVICE_URL: http://crypto-service:3003
+    volumes:
+      - ./backend/src:/app/src
+      - ./shared:/app/shared
+      - backend_logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      crypto-service:
+        condition: service_healthy
+    networks:
+      - voting-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  crypto-service:
+    build:
+      context: ./crypto-service
+      dockerfile: Dockerfile
+    container_name: voting-crypto-service
+    restart: unless-stopped
+    ports:
+      - "3003:3003"
+    environment:
+      NODE_ENV: development
+      PORT: 3003
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
+    volumes:
+      - ./crypto-service/src:/app/src
+      - ./shared:/app/shared
+      - crypto_keys:/app/keys
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - voting-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: voting-frontend
+    restart: unless-stopped
+    ports:
+      - "5175:5175"
+    environment:
+      VITE_API_URL: http://localhost:3002
+      VITE_CRYPTO_SERVICE_URL: http://localhost:3003
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./shared:/app/shared
+    depends_on:
+      - backend
+    networks:
+      - voting-network
+
+  monitoring:
+    build:
+      context: ./monitoring
+      dockerfile: Dockerfile
+    container_name: voting-monitoring
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+      - "3004:3004"
+    environment:
+      NODE_ENV: development
+      PORT: 3004
+      BACKEND_URL: http://backend:3002
+      POSTGRES_URL: postgresql://voting_admin:${DB_PASSWORD:-secure_password_change_me}@postgres:5432/voting_system
+      REDIS_URL: redis://:${REDIS_PASSWORD:-redis_secure_pass}@redis:6379
+    volumes:
+      - ./monitoring/src:/app/src
+      - monitoring_data:/app/data
+    depends_on:
+      - backend
+      - postgres
+      - redis
+    networks:
+      - voting-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3004/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  voting-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  postgres_data:
+  redis_data:
+  backend_logs:
+  crypto_keys:
+  monitoring_data:
+
