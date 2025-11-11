@@ -9,6 +9,10 @@ import { LoginForm } from './features/auth/components/LoginForm';
 import { Dashboard } from './pages/Dashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { VotingHistory } from './pages/VotingHistory';
+import { CreateElection } from './pages/admin/CreateElection';
+import { ManageCandidates } from './pages/admin/ManageCandidates';
+import { ManageVoters } from './pages/admin/ManageVoters';
+import { ElectionResults } from './pages/admin/ElectionResults';
 import { useAuthStore } from './features/auth/store/authStore';
 import { UserRole } from './types';
 import './App.css';
@@ -114,10 +118,18 @@ function App() {
             }
           />
           <Route
-            path="/admin/elections"
+            path="/admin/elections/create"
             element={
               <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
-                <div style={{ padding: '2rem' }}>Gestión de Elecciones - Próximamente</div>
+                <CreateElection />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/elections/:id/candidates"
+            element={
+              <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+                <ManageCandidates />
               </PrivateRoute>
             }
           />
@@ -125,15 +137,23 @@ function App() {
             path="/admin/voters"
             element={
               <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
-                <div style={{ padding: '2rem' }}>Gestión de Votantes - Próximamente</div>
+                <ManageVoters />
               </PrivateRoute>
             }
           />
           <Route
-            path="/admin/reports"
+            path="/admin/results"
             element={
               <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
-                <div style={{ padding: '2rem' }}>Reportes - Próximamente</div>
+                <ElectionResults />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/admin/elections"
+            element={
+              <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
+                <CreateElection />
               </PrivateRoute>
             }
           />

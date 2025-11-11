@@ -1,0 +1,266 @@
+/* Manage Candidates Page Styles */
+
+.manage-candidates-container {
+  display: flex;
+  background: #f5f7fa;
+  min-height: 100vh;
+}
+
+.manage-candidates-wrapper {
+  margin-left: 280px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 280px);
+}
+
+/* Main Content */
+.candidates-main {
+  flex: 1;
+  padding: 2rem;
+}
+
+.candidates-content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.5rem;
+}
+
+.btn-add-candidate {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add-candidate:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+/* Section Card */
+.section-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.section-card-header {
+  margin-bottom: 1.5rem;
+}
+
+.section-card-header h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 0.25rem 0;
+}
+
+.section-card-header p {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0;
+}
+
+/* Candidates List */
+.candidates-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.candidate-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f7fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.candidate-item:hover {
+  background: white;
+  border-color: #cbd5e0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.drag-handle {
+  cursor: grab;
+  color: #cbd5e0;
+  flex-shrink: 0;
+}
+
+.drag-handle:active {
+  cursor: grabbing;
+}
+
+.candidate-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.candidate-avatar-placeholder {
+  width: 64px;
+  height: 64px;
+  border-radius: 8px;
+  background: #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #a0aec0;
+  flex-shrink: 0;
+}
+
+.candidate-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.candidate-info h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 0.25rem 0;
+}
+
+.candidate-info p {
+  font-size: 0.875rem;
+  color: #718096;
+  margin: 0 0 0.5rem 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.candidate-party {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #dbeafe;
+  color: #1e40af;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.candidate-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Add Candidate Section */
+.add-candidate-section .section-card {
+  position: sticky;
+  top: 2rem;
+}
+
+.add-candidate-section h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0 0 1.5rem 0;
+}
+
+/* File Upload */
+.file-upload-area {
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+
+.file-upload-area:hover {
+  border-color: #2563eb;
+  background: #f7fafc;
+}
+
+.file-upload-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: #718096;
+}
+
+.file-upload-label svg {
+  color: #a0aec0;
+}
+
+.file-upload-label p {
+  font-size: 0.9375rem;
+  font-weight: 500;
+  color: #4a5568;
+  margin: 0;
+}
+
+.file-upload-label span {
+  font-size: 0.875rem;
+  color: #a0aec0;
+}
+
+.file-name {
+  margin-top: 0.75rem;
+  font-size: 0.875rem;
+  color: #2563eb;
+  font-weight: 500;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.form-actions .btn-secondary,
+.form-actions .btn-primary {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .candidates-content {
+    grid-template-columns: 1fr;
+  }
+
+  .add-candidate-section .section-card {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .manage-candidates-wrapper {
+    margin-left: 70px;
+    width: calc(100% - 70px);
+  }
+
+  .candidates-main {
+    padding: 1rem;
+  }
+
+  .candidate-item {
+    flex-wrap: wrap;
+  }
+
+  .candidate-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}
+
