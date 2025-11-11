@@ -1,37 +1,106 @@
+/* Portal de Votación Ciudadana - Estilos */
+
 .login-form-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
   min-height: 100vh;
-  padding: 2rem 1rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  background: #f5f7fa;
 }
 
+/* Header del Portal */
+.portal-header {
+  background: white;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.portal-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.portal-logo h1 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+/* Card Principal */
 .login-form-card {
   background: white;
-  border-radius: 1rem;
-  padding: 2.5rem;
-  max-width: 450px;
+  border-radius: 12px;
+  padding: 3rem;
+  max-width: 480px;
   width: 100%;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  margin: 4rem auto;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
 }
 
-.security-badge-header {
+/* Card Header */
+.card-header {
   text-align: center;
   margin-bottom: 2rem;
 }
 
-.security-badge-header svg {
-  color: #10b981;
-  margin-bottom: 1rem;
+.card-header h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
 }
 
-.security-badge-header h2 {
-  color: #1f2937;
-  font-size: 1.75rem;
+.card-subtitle {
+  color: #718096;
+  font-size: 0.9375rem;
   margin: 0;
 }
 
+/* Tabs */
+.tabs {
+  display: flex;
+  border-bottom: 2px solid #e2e8f0;
+  margin-bottom: 2rem;
+  gap: 0;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.875rem 1rem;
+  background: none;
+  border: none;
+  color: #718096;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s;
+}
+
+.tab:hover {
+  color: #2563eb;
+}
+
+.tab.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: #2563eb;
+  border-radius: 2px 2px 0 0;
+}
+
+/* Form */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -45,92 +114,169 @@
 }
 
 .form-group label {
-  font-weight: 600;
-  color: #374151;
   font-size: 0.875rem;
+  font-weight: 500;
+  color: #2d3748;
 }
 
-.form-group input {
-  padding: 0.75rem 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
-  font-size: 1rem;
-  transition: border-color 0.2s;
+/* Input con Icono */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
 }
 
-.form-group input:focus {
+.input-with-icon svg {
+  position: absolute;
+  left: 1rem;
+  color: #a0aec0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.input-with-icon input {
+  width: 100%;
+  padding: 0.875rem 1rem 0.875rem 3rem;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
+  color: #2d3748;
+  transition: all 0.2s;
+  background: white;
+}
+
+.input-with-icon input::placeholder {
+  color: #a0aec0;
+}
+
+.input-with-icon input:focus {
   outline: none;
   border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
 
-.form-group input:disabled {
-  background-color: #f3f4f6;
+.input-with-icon input:disabled {
+  background-color: #f7fafc;
   cursor: not-allowed;
 }
 
-.mfa-input {
-  text-align: center;
-  font-size: 1.5rem;
-  letter-spacing: 0.5rem;
-  font-weight: 600;
+/* Toggle Password Button */
+.toggle-password {
+  position: absolute;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #a0aec0;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  z-index: 1;
 }
 
-.error-message {
-  color: #ef4444;
+.toggle-password:hover {
+  color: #718096;
+}
+
+/* Forgot Password Link */
+.forgot-password {
+  text-align: right;
+  margin-top: -0.5rem;
+}
+
+.forgot-password a {
+  color: #2563eb;
+  text-decoration: none;
   font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.forgot-password a:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+/* Error Message */
+.error-message {
+  color: #e53e3e;
+  font-size: 0.8125rem;
+  margin-top: -0.25rem;
 }
 
 .error-banner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.75rem;
-  padding: 1rem;
-  background: #fee2e2;
-  border-left: 4px solid #ef4444;
-  border-radius: 0.5rem;
-  color: #991b1b;
+  padding: 0.875rem 1rem;
+  background: #fed7d7;
+  border-left: 3px solid #e53e3e;
+  border-radius: 6px;
+  color: #742a2a;
+  font-size: 0.875rem;
 }
 
 .error-banner svg {
   flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
+/* MFA Notice */
 .mfa-notice {
   display: flex;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 0.875rem;
   padding: 1rem;
-  background: #dbeafe;
-  border-left: 4px solid #2563eb;
-  border-radius: 0.5rem;
-  color: #1e40af;
-  margin-bottom: 1rem;
+  background: #ebf8ff;
+  border-left: 3px solid #2563eb;
+  border-radius: 6px;
+  color: #2c5282;
+  margin-bottom: 0.5rem;
 }
 
 .mfa-notice svg {
   flex-shrink: 0;
+  margin-top: 0.125rem;
 }
 
 .mfa-notice p {
   margin: 0;
+  font-size: 0.9375rem;
   font-weight: 500;
 }
 
+/* MFA Input */
+.mfa-input {
+  text-align: center !important;
+  font-size: 1.75rem !important;
+  letter-spacing: 0.75rem;
+  font-weight: 600;
+  padding: 1rem !important;
+}
+
+/* Buttons */
 .btn-primary {
-  padding: 0.875rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: #2563eb;
   color: white;
   border: none;
-  border-radius: 0.5rem;
-  font-size: 1rem;
+  border-radius: 8px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(37, 99, 235, 0.2);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
@@ -138,21 +284,27 @@
   cursor: not-allowed;
 }
 
-.btn-secondary {
-  padding: 0.875rem 1.5rem;
-  background: white;
-  color: #6b7280;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.5rem;
+.btn-large {
+  padding: 1rem 1.5rem;
   font-size: 1rem;
+}
+
+.btn-secondary {
+  width: 100%;
+  padding: 0.75rem 1.5rem;
+  background: white;
+  color: #4a5568;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9375rem;
   font-weight: 600;
   cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
+  transition: all 0.2s;
 }
 
 .btn-secondary:hover:not(:disabled) {
-  border-color: #9ca3af;
-  color: #374151;
+  background: #f7fafc;
+  border-color: #cbd5e0;
 }
 
 .btn-secondary:disabled {
@@ -160,32 +312,86 @@
   cursor: not-allowed;
 }
 
-.security-info {
+/* Card Footer */
+.card-footer {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #e2e8f0;
   text-align: center;
-  color: #6b7280;
-  font-size: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
 
-.login-footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  color: #6b7280;
-  font-size: 0.875rem;
+.card-footer a {
+  color: #718096;
+  text-decoration: none;
+  font-size: 0.8125rem;
+  transition: color 0.2s;
 }
 
-.login-footer strong {
-  color: #ef4444;
+.card-footer a:hover {
+  color: #2563eb;
 }
 
+.card-footer .separator {
+  color: #cbd5e0;
+  font-size: 0.8125rem;
+  user-select: none;
+}
+
+/* Responsive */
 @media (max-width: 640px) {
+  .portal-header {
+    padding: 1rem 1.5rem;
+  }
+
+  .portal-logo h1 {
+    font-size: 1.25rem;
+  }
+
+  .portal-logo svg {
+    width: 28px;
+    height: 28px;
+  }
+
   .login-form-card {
+    margin: 2rem 1rem;
     padding: 2rem 1.5rem;
   }
 
-  .security-badge-header h2 {
+  .card-header h2 {
     font-size: 1.5rem;
+  }
+
+  .card-subtitle {
+    font-size: 0.875rem;
+  }
+
+  .card-footer {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .card-footer .separator {
+    display: none;
   }
 }
 
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-form-card {
+  animation: fadeIn 0.3s ease-out;
+}

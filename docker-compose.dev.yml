@@ -1,0 +1,26 @@
+# Docker Compose para desarrollo - Solo Frontend
+version: '3.9'
+
+services:
+  # Frontend - React + Vite
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    container_name: voting-frontend-dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+      - VITE_API_URL=http://localhost:4000/api/v1
+    networks:
+      - voting-network
+
+networks:
+  voting-network:
+    driver: bridge
+
