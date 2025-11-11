@@ -7,8 +7,13 @@ import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './features/auth/components/LoginForm';
 import { Dashboard } from './pages/Dashboard';
-import { AdminDashboard } from './pages/AdminDashboard';
 import { VotingHistory } from './pages/VotingHistory';
+import { VotingPage } from './pages/VotingPage';
+import { ResultsPage } from './pages/ResultsPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
+import { HelpPage } from './pages/HelpPage';
+import { AdminDashboard } from './pages/AdminDashboard';
 import { CreateElection } from './pages/admin/CreateElection';
 import { ManageCandidates } from './pages/admin/ManageCandidates';
 import { ManageVoters } from './pages/admin/ManageVoters';
@@ -71,7 +76,15 @@ function App() {
             path="/votar"
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
-                <div style={{ padding: '2rem' }}>Página de Votación - Próximamente</div>
+                <VotingPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/votar/:electionId"
+            element={
+              <PrivateRoute allowedRoles={[UserRole.VOTER]}>
+                <VotingPage />
               </PrivateRoute>
             }
           />
@@ -79,7 +92,7 @@ function App() {
             path="/resultados"
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
-                <div style={{ padding: '2rem' }}>Página de Resultados - Próximamente</div>
+                <ResultsPage />
               </PrivateRoute>
             }
           />
@@ -87,7 +100,7 @@ function App() {
             path="/perfil"
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
-                <div style={{ padding: '2rem' }}>Página de Perfil - Próximamente</div>
+                <ProfilePage />
               </PrivateRoute>
             }
           />
@@ -95,7 +108,7 @@ function App() {
             path="/configuracion"
             element={
               <PrivateRoute>
-                <div style={{ padding: '2rem' }}>Página de Configuración - Próximamente</div>
+                <SettingsPage />
               </PrivateRoute>
             }
           />
@@ -103,7 +116,7 @@ function App() {
             path="/ayuda"
             element={
               <PrivateRoute>
-                <div style={{ padding: '2rem' }}>Página de Ayuda - Próximamente</div>
+                <HelpPage />
               </PrivateRoute>
             }
           />
