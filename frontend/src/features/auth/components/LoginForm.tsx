@@ -9,6 +9,7 @@ import { useAuth } from '../hooks/useAuth';
 import { useAuthStore } from '../store/authStore';
 import { validateEmail } from '@utils/validation';
 import { sanitizeEmail, sanitizeText } from '@utils/sanitize';
+import { UserRole } from '@/types';
 import './LoginForm.css';
 
 export function LoginForm() {
@@ -72,7 +73,7 @@ export function LoginForm() {
       const user = {
         id: isAdmin ? 'admin-1' : '1',
         email: sanitizedEmail,
-        role: (isAdmin ? 'admin' : 'voter') as any,
+        role: isAdmin ? UserRole.ADMIN : UserRole.VOTER,
         isVerified: true,
         mfaEnabled: false,
         createdAt: new Date().toISOString(),
