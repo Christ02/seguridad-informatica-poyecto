@@ -4,12 +4,15 @@
  */
 
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useAuthStore } from '../store/authStore';
 import { validateEmail } from '@utils/validation';
 import { sanitizeEmail, sanitizeText } from '@utils/sanitize';
 import './LoginForm.css';
 
 export function LoginForm() {
+  const navigate = useNavigate();
   const { login, isLoading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -57,6 +60,25 @@ export function LoginForm() {
     const sanitizedPassword = sanitizeText(password);
 
     // Intentar login
+    // TEMPORAL: Para demo, simular login exitoso
+    if (sanitizedEmail && sanitizedPassword) {
+      // Simular un usuario autenticado
+      useAuthStore.getState().setUser({
+        id: '1',
+        email: sanitizedEmail,
+        role: 'voter' as any,
+        isVerified: true,
+        mfaEnabled: false,
+        createdAt: new Date().toISOString(),
+      });
+      
+      // Navegar al dashboard
+      navigate('/dashboard');
+      return;
+    }
+
+    /* 
+    // Código real de login (descomentar cuando el backend esté listo):
     const result = await login({
       email: sanitizedEmail,
       password: sanitizedPassword,
@@ -65,10 +87,13 @@ export function LoginForm() {
 
     if (result.requiresMFA) {
       setRequiresMFA(true);
-    } else if (!result.success) {
+    } else if (result.success) {
+      navigate('/dashboard');
+    } else {
       setAttempts(attempts + 1);
       setErrors({ general: error || 'Login fallido' });
     }
+    */
   };
 
   return (

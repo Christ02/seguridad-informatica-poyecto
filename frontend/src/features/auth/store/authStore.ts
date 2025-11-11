@@ -6,6 +6,9 @@
 import { create } from 'zustand';
 import type { User } from '@types/index';
 
+// Import para poder usar desde otros módulos
+import { useAuthStore as store } from './authStore';
+
 interface AuthState {
   user: User | null;
   isAuthenticated: boolean;
