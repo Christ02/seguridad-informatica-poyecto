@@ -22,15 +22,15 @@ import mongodbConfig from './config/mongodb.config';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) =>
-        configService.get('database'),
+        configService.get('database') as any,
       inject: [ConfigService],
     }),
 
     // Rate Limiting
     ThrottlerModule.forRoot([
       {
-        ttl: parseInt(process.env.RATE_LIMIT_TTL, 10) || 60000,
-        limit: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100,
+        ttl: parseInt(process.env.RATE_LIMIT_TTL || '60000', 10),
+        limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
       },
     ]),
 

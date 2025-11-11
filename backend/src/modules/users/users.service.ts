@@ -18,19 +18,19 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.usersRepository.find({
-      where: { deletedAt: null },
+      where: { deletedAt: null as any },
     });
   }
 
   async findOne(id: string): Promise<User | null> {
     return this.usersRepository.findOne({
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null as any },
     });
   }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
-      where: { email, deletedAt: null },
+      where: { email, deletedAt: null as any },
     });
   }
 
@@ -38,12 +38,12 @@ export class UsersService {
     identificationNumber: string,
   ): Promise<User | null> {
     return this.usersRepository.findOne({
-      where: { identificationNumber, deletedAt: null },
+      where: { identificationNumber, deletedAt: null as any },
     });
   }
 
   async hashPassword(password: string): Promise<string> {
-    const rounds = parseInt(process.env.BCRYPT_ROUNDS, 10) || 12;
+    const rounds = parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
     return bcrypt.hash(password, rounds);
   }
 

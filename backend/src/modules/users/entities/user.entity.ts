@@ -44,16 +44,16 @@ export class User {
   mfaEnabled: boolean;
 
   @Column({ type: 'varchar', nullable: true })
-  mfaSecret: string;
+  mfaSecret: string | null;
 
   @Column({ type: 'varchar', nullable: true })
-  refreshToken: string;
+  refreshToken: string | null;
 
   @Column({ type: 'timestamp', nullable: true })
   lastLoginAt: Date;
 
   @Column({ type: 'varchar', nullable: true })
-  lastLoginIp: string;
+  lastLoginIp: string | null;
 
   @CreateDateColumn()
   createdAt: Date;
@@ -62,6 +62,6 @@ export class User {
   updatedAt: Date;
 
   @Column({ type: 'timestamp', nullable: true })
-  deletedAt: Date;
+  deletedAt: Date | null;
 }
 

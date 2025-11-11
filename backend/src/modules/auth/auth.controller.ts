@@ -12,7 +12,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { JwtRefreshGuard } from './guards/jwt-refresh.guard';
-import { Request } from 'express';
+import type { Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
