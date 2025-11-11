@@ -2,12 +2,15 @@
 
 ## Estado Actual
 
-✅ **5 commits locales** listos para hacer push:
+✅ **6 commits locales** listos para hacer push:
 1. feat: configurar proyecto frontend seguro con Vite, React y TypeScript
 2. feat: implementar autenticación MFA con TOTP y WebAuthn
 3. docs: agregar documento de estado de implementación
 4. feat: rediseñar login estilo Portal de Votación Ciudadana
 5. feat: implementar dashboard post-login con routing
+6. feat: implementar página historial de votación con sidebar de navegación
+
+⚠️ **Error actual**: `Load key "/Users/christian/.ssh/id_ed25519_personal": Operation not permitted`
 
 ---
 
@@ -20,9 +23,19 @@
 
 ---
 
-## Opción 2: Verificar Acceso SSH
+## Opción 2: Verificar y Arreglar Permisos de Clave SSH
 
 ```bash
+# Verifica los permisos de tu clave SSH
+ls -la ~/.ssh/id_ed25519_personal
+
+# Corrige los permisos si es necesario (debe ser 600)
+chmod 600 ~/.ssh/id_ed25519_personal
+chmod 600 ~/.ssh/id_ed25519_personal.pub
+
+# Agrega la clave al agente SSH
+ssh-add ~/.ssh/id_ed25519_personal
+
 # Verifica que tu clave SSH esté configurada
 ssh -T git@github.com
 
