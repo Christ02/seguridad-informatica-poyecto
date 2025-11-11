@@ -62,18 +62,30 @@ export function LoginForm() {
     // Intentar login
     // TEMPORAL: Para demo, simular login exitoso
     if (sanitizedEmail && sanitizedPassword) {
+      // Detectar si es admin (por convención: admin@xxx.com o ID específico)
+      const isAdmin = 
+        sanitizedEmail.toLowerCase().includes('admin') || 
+        email === '1234567890' || // ID de cédula de admin
+        email === 'admin';
+
       // Simular un usuario autenticado
-      useAuthStore.getState().setUser({
-        id: '1',
+      const user = {
+        id: isAdmin ? 'admin-1' : '1',
         email: sanitizedEmail,
-        role: 'voter' as any,
+        role: (isAdmin ? 'admin' : 'voter') as any,
         isVerified: true,
         mfaEnabled: false,
         createdAt: new Date().toISOString(),
-      });
+      };
+
+      useAuthStore.getState().setUser(user);
       
-      // Navegar al dashboard
-      navigate('/dashboard');
+      // Navegar al dashboard según el rol
+      if (isAdmin) {
+        navigate('/admin/dashboard');
+      } else {
+        navigate('/dashboard');
+      }
       return;
     }
 
