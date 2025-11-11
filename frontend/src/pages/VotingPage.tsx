@@ -6,8 +6,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Sidebar } from '@components/Sidebar';
-import { encryptVote, generateKeyPair, hashData } from '@utils/crypto';
-import { sanitizeText } from '@utils/sanitize';
+import { generateRSAKeyPair, encryptWithPublicKey, hashSHA256 } from '@utils/crypto';
 import './VotingPage.css';
 
 interface Candidate {
@@ -78,7 +77,7 @@ export function VotingPage() {
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Generar claves para cifrado
-      const keyPair = await generateKeyPair();
+      const keyPair = await generateRSAKeyPair();
       
       // Cifrar el voto
       const voteData = JSON.stringify({
@@ -87,10 +86,10 @@ export function VotingPage() {
         timestamp: Date.now(),
       });
 
-      const encryptedVote = await encryptVote(voteData, keyPair.publicKey);
+      const encryptedVote = await encryptWithPublicKey(voteData, keyPair.publicKey);
       
       // Generar hash del voto como recibo
-      const receipt = await hashData(encryptedVote);
+      const receipt = await hashSHA256(encryptedVote);
       
       setVoteReceipt(receipt);
       
