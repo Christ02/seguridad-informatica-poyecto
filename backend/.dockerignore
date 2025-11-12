@@ -1,13 +1,15 @@
-node_modules
-npm-debug.log
-dist
-.env
+# raíz
 .git
 .gitignore
-README.md
-.vscode
-.DS_Store
-coverage
-.env.local
-.env.development
-.env.production
+**/node_modules
+**/dist
+**/.next
+**/.turbo
+**/.cache
+Dockerfile
+docker-compose.yml
+*.log
+
+# si tienes frontend u otros paquetes
+frontend/
+docs/
