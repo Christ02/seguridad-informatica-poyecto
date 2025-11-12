@@ -63,11 +63,19 @@ curl -X POST https://voting-system-secure-production.up.railway.app/api/v1/auth/
 
 ### Frontend (Vercel)
 - **URL Principal**: https://frontend-delta-six-81.vercel.app
-- **URL Alternativa**: https://frontend-1q8dxt4ol-christians-projects-630693d2.vercel.app
+- **URL Más Reciente**: https://frontend-1xlkm9gku-christians-projects-630693d2.vercel.app
 
 ### Backend (Railway)
 - **URL**: https://voting-system-secure-production.up.railway.app
 - **API Base**: https://voting-system-secure-production.up.railway.app/api/v1
+
+### Variables de Entorno Configuradas
+
+**Vercel (Frontend)**:
+- `VITE_API_URL` = `https://voting-system-secure-production.up.railway.app/api/v1`
+
+**Railway (Backend)**:
+- CORS configurado dinámicamente en código para aceptar todos los deployments de Vercel
 
 ## 🔐 Credenciales Admin
 
