@@ -9,10 +9,38 @@ async function bootstrap() {
   // Security headers
   app.use(helmet());
 
-  // CORS
+  // CORS - Configuración mejorada para producción
   app.enableCors({
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'https://frontend-delta-six-81.vercel.app',
+        /^https:\/\/frontend-.*\.vercel\.app$/, // Permite todos los deployments de Vercel
+      ];
+      
+      // Permitir peticiones sin origin (como Postman, curl, etc.)
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+      
+      // Verificar si el origin está permitido
+      const isAllowed = allowedOrigins.some(allowed => 
+        typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
+      );
+      
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+    exposedHeaders: ['Authorization'],
+    maxAge: 86400, // 24 horas
   });
 
   // Global prefix
