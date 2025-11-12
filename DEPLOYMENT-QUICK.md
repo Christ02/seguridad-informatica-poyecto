@@ -17,11 +17,13 @@
 
 ### Credenciales de Base de Datos
 ```
-Host: postgres.railway.internal
-Port: 5432
-User: postgres
-Password: uXxjPodPUkUzHDgFyKhYVsDyhezhStVe
-Database: railway
+# Railway configura estas automáticamente cuando vinculas PostgreSQL
+# Las encontrarás en: Railway Dashboard → Postgres Service → Variables
+Host: ${Postgres.PGHOST}
+Port: ${Postgres.PGPORT}
+User: ${Postgres.PGUSER}
+Password: ${Postgres.PGPASSWORD}
+Database: ${Postgres.PGDATABASE}
 ```
 
 ## 🔧 Pasos Rápidos para Completar el Deployment
@@ -44,16 +46,17 @@ Database: railway
 Ve a "Variables" y agrega:
 
 ```bash
-# Ya configuradas automáticamente:
-DATABASE_HOST=postgres.railway.internal
-DATABASE_PORT=5432
-DATABASE_USER=postgres
-DATABASE_PASSWORD=uXxjPodPUkUzHDgFyKhYVsDyhezhStVe
-DATABASE_NAME=railway
+# Ya configuradas automáticamente al vincular PostgreSQL:
+DATABASE_HOST=${Postgres.PGHOST}
+DATABASE_PORT=${Postgres.PGPORT}
+DATABASE_USER=${Postgres.PGUSER}
+DATABASE_PASSWORD=${Postgres.PGPASSWORD}
+DATABASE_NAME=${Postgres.PGDATABASE}
 
-# Agregar manualmente:
-JWT_SECRET=97074b1956a55b2f7d87341b23534be4dd6ad40568a7aea6c7033541d4770f85fdf7c77206bdea9c148884d8157a0405d5a5379f62b1c61677944f9ceca3ce60
-JWT_REFRESH_SECRET=359213f7678fc22b3b91b56ab6c1a7dd6c40a69c5d9514eae68cfadf5b21a10697405e799980352cd0e8b3e91d4daf8430d70bb0efdbb2fea146cd2d535536a9
+# Agregar manualmente (genera tus propios secretos seguros):
+# Para generar secretos: node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+JWT_SECRET=TU_SECRETO_JWT_AQUI
+JWT_REFRESH_SECRET=TU_SECRETO_REFRESH_AQUI
 JWT_EXPIRES_IN=15m
 JWT_REFRESH_EXPIRES_IN=7d
 PORT=4000
