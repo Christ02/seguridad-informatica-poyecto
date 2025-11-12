@@ -6,6 +6,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
+import { AuditService } from '../audit/audit.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
@@ -16,6 +17,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private auditService: AuditService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<{ user: Partial<User> }> {
@@ -24,14 +26,25 @@ export class AuthService {
       registerDto.email,
     );
     if (existingUser) {
-      throw new BadRequestException('El usuario ya existe');
+      throw new BadRequestException('El correo electrónico ya está registrado');
     }
 
-    const existingId = await this.usersService.findByIdentificationNumber(
-      registerDto.identificationNumber,
-    );
-    if (existingId) {
-      throw new BadRequestException('El número de identificación ya existe');
+    const existingDpi = await this.usersService.findByDpi(registerDto.dpi);
+    if (existingDpi) {
+      throw new BadRequestException('El DPI ya está registrado');
+    }
+
+    // Validar edad mínima (18 años para votar en Guatemala)
+    const birthDate = new Date(registerDto.dateOfBirth);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    if (age < 18) {
+      throw new BadRequestException('Debes tener al menos 18 años para registrarte');
     }
 
     // Hash de la contraseña
@@ -42,8 +55,14 @@ export class AuthService {
     // Crear usuario
     const user = await this.usersService.create({
       email: registerDto.email,
-      identificationNumber: registerDto.identificationNumber,
-      fullName: registerDto.fullName,
+      dpi: registerDto.dpi,
+      firstName: registerDto.firstName,
+      lastName: registerDto.lastName,
+      dateOfBirth: new Date(registerDto.dateOfBirth),
+      phoneNumber: registerDto.phoneNumber,
+      department: registerDto.department,
+      municipality: registerDto.municipality,
+      address: registerDto.address,
       password: hashedPassword,
       isActive: true,
       isVerified: false, // Requiere verificación de email
@@ -72,6 +91,13 @@ export class AuthService {
     }
 
     if (!user) {
+      // Log intento fallido
+      await this.auditService.logLoginFailed(
+        loginDto.identifier,
+        ip,
+        '',
+        'Usuario no encontrado',
+      );
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
@@ -82,11 +108,24 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
+      // Log intento fallido
+      await this.auditService.logLoginFailed(
+        user.email,
+        ip,
+        '',
+        'Contraseña incorrecta',
+      );
       throw new UnauthorizedException('Credenciales inválidas');
     }
 
     // Verificar si el usuario está activo
     if (!user.isActive) {
+      await this.auditService.logLoginFailed(
+        user.email,
+        ip,
+        '',
+        'Usuario inactivo',
+      );
       throw new UnauthorizedException('Usuario inactivo');
     }
 
@@ -97,6 +136,9 @@ export class AuthService {
 
     // Generar tokens
     const tokens = await this.generateTokens(user);
+
+    // Log login exitoso
+    await this.auditService.logLogin(user.id, user.email, ip, '');
 
     // Guardar refresh token hasheado
     const hashedRefreshToken = await this.usersService.hashPassword(

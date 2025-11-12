@@ -1,0 +1,215 @@
+/**
+ * AdminLayout Styles
+ * Estilos compartidos para todas las páginas de admin
+ */
+
+.admin-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f9fafb;
+}
+
+/* ========== Top Navigation ========== */
+.admin-top-nav {
+  background: white;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 0 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 3rem;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #111827;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.nav-links a {
+  padding: 0.5rem 1rem;
+  color: #6b7280;
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.nav-links a:hover {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.nav-links a.active {
+  color: #2563eb;
+  background: #eff6ff;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: #f9fafb;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #6b7280;
+}
+
+.btn-icon:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.user-menu:hover {
+  background: #f9fafb;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.user-menu span {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+}
+
+/* ========== Main Content ========== */
+.admin-main-content {
+  flex: 1;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Page Header */
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 2rem;
+}
+
+.header-text h1 {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.header-text p {
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* Page Content */
+.admin-page-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* ========== Footer ========== */
+.admin-footer {
+  border-top: 1px solid #e5e7eb;
+  padding: 1.5rem 2rem;
+  text-align: center;
+  background: white;
+}
+
+.admin-footer p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+/* ========== Responsive ========== */
+@media (max-width: 1024px) {
+  .admin-main-content {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-top-nav {
+    padding: 0 1rem;
+  }
+
+  .nav-left {
+    gap: 1.5rem;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .admin-main-content {
+    padding: 1rem;
+  }
+
+  .admin-page-header {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+}
+

@@ -6,6 +6,7 @@
 import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginForm } from './features/auth/components/LoginForm';
+import { RegisterForm } from './features/auth/components/RegisterForm';
 import { Dashboard } from './pages/Dashboard';
 import { VotingHistory } from './pages/VotingHistory';
 import { VotingPage } from './pages/VotingPage';
@@ -18,8 +19,12 @@ import { CreateElection } from './pages/admin/CreateElection';
 import { ManageCandidates } from './pages/admin/ManageCandidates';
 import { ManageVoters } from './pages/admin/ManageVoters';
 import { ElectionResults } from './pages/admin/ElectionResults';
+import { AdminVotesHistory } from './pages/admin/AdminVotesHistory';
 import { useAuthStore } from './features/auth/store/authStore';
+import { useToast } from '@hooks/useToast';
+import { Toast } from './components/Toast';
 import { UserRole } from './types';
+import { logger } from '@utils/logger';
 import './App.css';
 
 // Protected Route component con verificación de roles
@@ -44,16 +49,33 @@ function PrivateRoute({ children, allowedRoles }: { children: React.ReactNode; a
 }
 
 function App() {
+  const { toasts, removeToast } = useToast();
+  
   useEffect(() => {
-    console.log('🔒 Sistema de Votación Segura - Inicializado');
-    console.log('🛡️ Protecciones activas: XSS, CSRF, Rate Limiting, MFA, RBAC');
+    logger.success('Sistema de Votación Segura - Inicializado');
+    logger.info('Protecciones activas: XSS, CSRF, Rate Limiting, MFA, RBAC');
   }, []);
 
   return (
     <BrowserRouter>
       <div className="app">
+        {/* Toast Container */}
+        <div className="toast-container">
+          {toasts.map((toast) => (
+            <Toast
+              key={toast.id}
+              id={toast.id}
+              type={toast.type}
+              message={toast.message}
+              {...(toast.duration !== undefined && { duration: toast.duration })}
+              onClose={removeToast}
+            />
+          ))}
+        </div>
+        
         <Routes>
           <Route path="/login" element={<LoginForm />} />
+          <Route path="/register" element={<RegisterForm />} />
 
           {/* Rutas de Usuario Normal */}
           <Route
@@ -73,7 +95,7 @@ function App() {
             }
           />
           <Route
-            path="/votar"
+            path="/vote/:electionId"
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
                 <VotingPage />
@@ -81,15 +103,7 @@ function App() {
             }
           />
           <Route
-            path="/votar/:electionId"
-            element={
-              <PrivateRoute allowedRoles={[UserRole.VOTER]}>
-                <VotingPage />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/resultados"
+            path="/results/:electionId"
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
                 <ResultsPage />
@@ -131,7 +145,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/elections/create"
+            path="/admin/create-election"
             element={
               <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
                 <CreateElection />
@@ -139,7 +153,7 @@ function App() {
             }
           />
           <Route
-            path="/admin/elections/:id/candidates"
+            path="/admin/candidates"
             element={
               <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
                 <ManageCandidates />
@@ -163,10 +177,10 @@ function App() {
             }
           />
           <Route
-            path="/admin/elections"
+            path="/admin/votes-history"
             element={
-              <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN]}>
-                <CreateElection />
+              <PrivateRoute allowedRoles={[UserRole.ADMIN, UserRole.SUPER_ADMIN, UserRole.AUDITOR]}>
+                <AdminVotesHistory />
               </PrivateRoute>
             }
           />

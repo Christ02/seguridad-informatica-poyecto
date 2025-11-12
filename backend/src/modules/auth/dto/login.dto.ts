@@ -3,7 +3,7 @@ import { IsString, IsNotEmpty, MinLength, IsOptional } from 'class-validator';
 export class LoginDto {
   @IsString()
   @IsNotEmpty()
-  identifier: string; // Email o número de identificación
+  identifier: string; // Email o DPI
 
   @IsString()
   @IsNotEmpty()

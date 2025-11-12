@@ -3,85 +3,92 @@
  * Página principal de votación con cifrado y verificación
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Sidebar } from '@components/Sidebar';
 import { generateRSAKeyPair, encryptWithPublicKey, hashSHA256 } from '@utils/crypto';
+import { electionsApi } from '@services/elections.api';
+import { candidatesApi } from '@services/candidates.api';
+import { votesApi } from '@services/votes.api';
+import { useAuthStore } from '@features/auth/store/authStore';
+import type { Election } from '@services/elections.api';
+import type { Candidate } from '@services/candidates.api';
 import './VotingPage.css';
-
-interface Candidate {
-  id: string;
-  name: string;
-  description: string;
-  party: string;
-  imageUrl?: string;
-}
 
 export function VotingPage() {
   const navigate = useNavigate();
   const { electionId } = useParams();
+  const user = useAuthStore((state) => state.user);
+  const [election, setElection] = useState<Election | null>(null);
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [selectedCandidate, setSelectedCandidate] = useState<string | null>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [voteReceipt, setVoteReceipt] = useState<string | null>(null);
+  const [verificationCode, setVerificationCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasVoted, setHasVoted] = useState(false);
 
-  const election = {
-    id: electionId || '1',
-    title: 'Elección Presidencial 2025',
-    description: 'Elección de presidente para el período 2025-2029',
-    endDate: '30 de Noviembre, 2025',
-    remainingTime: '3 días, 14 horas',
-  };
+  useEffect(() => {
+    const loadData = async () => {
+      if (!electionId) {
+        setError('ID de elección no válido');
+        setLoading(false);
+        return;
+      }
 
-  const candidates: Candidate[] = [
-    {
-      id: '1',
-      name: 'María González',
-      description: 'Propuestas enfocadas en educación, salud pública y desarrollo sostenible.',
-      party: 'Partido Progresista',
-      imageUrl: 'https://ui-avatars.com/api/?name=Maria+Gonzalez&background=2563eb&color=fff&size=128',
-    },
-    {
-      id: '2',
-      name: 'Juan Martínez',
-      description: 'Enfoque en economía, empleo y seguridad ciudadana.',
-      party: 'Alianza Nacional',
-      imageUrl: 'https://ui-avatars.com/api/?name=Juan+Martinez&background=10b981&color=fff&size=128',
-    },
-    {
-      id: '3',
-      name: 'Ana Rodríguez',
-      description: 'Políticas de inclusión social, derechos humanos y transparencia.',
-      party: 'Movimiento Social',
-      imageUrl: 'https://ui-avatars.com/api/?name=Ana+Rodriguez&background=f59e0b&color=fff&size=128',
-    },
-  ];
+      try {
+        setLoading(true);
+        
+        // Cargar elección y candidatos
+        const [electionData, candidatesData, voteStatus] = await Promise.all([
+          electionsApi.getById(electionId),
+          candidatesApi.getByElection(electionId),
+          votesApi.hasVoted(electionId),
+        ]);
+
+        setElection(electionData);
+        setCandidates(candidatesData);
+        setHasVoted(voteStatus.hasVoted);
+
+        if (voteStatus.hasVoted) {
+          setError('Ya has emitido tu voto en esta elección');
+        }
+      } catch (err: unknown) {
+        console.error('Error loading data:', err);
+        setError('Error al cargar los datos de la elección');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [electionId]);
 
   const handleSelectCandidate = (candidateId: string) => {
-    setSelectedCandidate(candidateId);
+    if (!hasVoted) {
+      setSelectedCandidate(candidateId);
+    }
   };
 
   const handleConfirmVote = () => {
-    if (!selectedCandidate) return;
+    if (!selectedCandidate || hasVoted) return;
     setShowConfirmation(true);
   };
 
   const handleSubmitVote = async () => {
-    if (!selectedCandidate) return;
+    if (!selectedCandidate || !electionId || !user) return;
 
     setIsProcessing(true);
 
     try {
-      // Simular proceso de cifrado y envío
-      // En producción, esto se conectaría al backend
-      await new Promise(resolve => setTimeout(resolve, 2000));
-
       // Generar claves para cifrado
       const keyPair = await generateRSAKeyPair();
       
       // Cifrar el voto
       const voteData = JSON.stringify({
-        electionId: election.id,
+        electionId,
         candidateId: selectedCandidate,
         timestamp: Date.now(),
       });
@@ -89,17 +96,26 @@ export function VotingPage() {
       const encryptedVote = await encryptWithPublicKey(voteData, keyPair.publicKey);
       
       // Generar hash del voto como recibo
-      const receipt = await hashSHA256(encryptedVote);
-      
-      setVoteReceipt(receipt);
-      
-      // Aquí iría el envío al backend
-      console.log('Vote encrypted and ready to send:', {
+      const hashData = `${user.id}:${electionId}:${selectedCandidate}:${encryptedVote}`;
+      const voteHash = await hashSHA256(hashData);
+
+      // Generar firma simple
+      const signature = await hashSHA256(`${voteHash}:${user.id}`);
+
+      // Enviar voto al backend
+      const response = await votesApi.cast({
+        electionId,
+        candidateId: selectedCandidate,
         encryptedVote,
-        receipt,
+        voteHash,
+        signature,
       });
 
-    } catch (error) {
+      setVoteReceipt(response.voteHash);
+      setVerificationCode(response.verificationCode);
+      setHasVoted(true);
+
+    } catch (error: unknown) {
       console.error('Error al procesar voto:', error);
       alert('Hubo un error al procesar tu voto. Por favor intenta nuevamente.');
     } finally {
@@ -108,11 +124,12 @@ export function VotingPage() {
   };
 
   const handleDownloadReceipt = () => {
-    if (!voteReceipt) return;
+    if (!voteReceipt || !election) return;
 
     const receiptData = {
       election: election.title,
       voteHash: voteReceipt,
+      verificationCode,
       timestamp: new Date().toISOString(),
       verificationUrl: `${window.location.origin}/verify/${voteReceipt}`,
     };
@@ -132,6 +149,44 @@ export function VotingPage() {
 
   const selectedCandidateData = candidates.find(c => c.id === selectedCandidate);
 
+  // Loading state
+  if (loading) {
+    return (
+      <div className="voting-page-container">
+        <Sidebar />
+        <div className="voting-page-wrapper">
+          <main className="voting-main">
+            <div className="loading-container">
+              <div className="spinner"></div>
+              <p>Cargando elección...</p>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Error state
+  if (error || !election) {
+    return (
+      <div className="voting-page-container">
+        <Sidebar />
+        <div className="voting-page-wrapper">
+          <main className="voting-main">
+            <div className="error-container">
+              <h2>Error</h2>
+              <p>{error || 'No se pudo cargar la elección'}</p>
+              <button className="btn-back" onClick={() => navigate('/dashboard')}>
+                Volver al Dashboard
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  // Success screen
   if (voteReceipt) {
     return (
       <div className="voting-page-container">
@@ -171,6 +226,13 @@ export function VotingPage() {
                   </button>
                 </div>
 
+                {verificationCode && (
+                  <div className="verification-code">
+                    <p><strong>Código de Verificación:</strong></p>
+                    <code>{verificationCode}</code>
+                  </div>
+                )}
+
                 <div className="security-info">
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
@@ -199,6 +261,7 @@ export function VotingPage() {
     );
   }
 
+  // Confirmation screen
   if (showConfirmation && selectedCandidateData) {
     return (
       <div className="voting-page-container">
@@ -213,10 +276,13 @@ export function VotingPage() {
               </p>
 
               <div className="selected-candidate-card">
-                <img src={selectedCandidateData.imageUrl} alt={selectedCandidateData.name} />
+                <img 
+                  src={selectedCandidateData.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedCandidateData.name)}`} 
+                  alt={selectedCandidateData.name} 
+                />
                 <div className="candidate-details">
                   <h2>{selectedCandidateData.name}</h2>
-                  <span className="party-badge">{selectedCandidateData.party}</span>
+                  <span className="party-badge">{selectedCandidateData.party || 'Independiente'}</span>
                   <p>{selectedCandidateData.description}</p>
                 </div>
               </div>
@@ -286,6 +352,15 @@ export function VotingPage() {
     );
   }
 
+  // Calculate remaining time
+  const endDate = new Date(election.endDate);
+  const now = new Date();
+  const diffTime = endDate.getTime() - now.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor((diffTime % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const remainingTime = diffDays > 0 ? `${diffDays} días, ${diffHours} horas` : `${diffHours} horas`;
+
+  // Main voting screen
   return (
     <div className="voting-page-container">
       <Sidebar />
@@ -304,13 +379,21 @@ export function VotingPage() {
             </svg>
             <div>
               <span className="timer-label">Termina en:</span>
-              <span className="timer-value">{election.remainingTime}</span>
+              <span className="timer-value">{remainingTime}</span>
             </div>
           </div>
         </header>
 
         {/* Main Content */}
         <main className="voting-main">
+          {/* Info Box */}
+          <div className="page-info-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <p>Tu voto será cifrado con RSA-4096 y registrado de forma completamente anónima</p>
+          </div>
+
           <div className="voting-instructions">
             <h2>Selecciona tu Candidato</h2>
             <p>Revisa las propuestas de cada candidato y selecciona tu opción preferida.</p>
@@ -320,10 +403,10 @@ export function VotingPage() {
             {candidates.map((candidate) => (
               <div
                 key={candidate.id}
-                className={`candidate-card ${selectedCandidate === candidate.id ? 'selected' : ''}`}
+                className={`candidate-card ${selectedCandidate === candidate.id ? 'selected' : ''} ${hasVoted ? 'disabled' : ''}`}
                 onClick={() => handleSelectCandidate(candidate.id)}
               >
-                {selectedCandidate === candidate.id && (
+                {selectedCandidate === candidate.id && !hasVoted && (
                   <div className="selected-badge">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3">
                       <polyline points="20 6 9 17 4 12" />
@@ -331,11 +414,15 @@ export function VotingPage() {
                   </div>
                 )}
 
-                <img src={candidate.imageUrl} alt={candidate.name} className="candidate-photo" />
+                <img 
+                  src={candidate.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}`} 
+                  alt={candidate.name} 
+                  className="candidate-photo" 
+                />
                 
                 <div className="candidate-content">
                   <h3>{candidate.name}</h3>
-                  <span className="candidate-party">{candidate.party}</span>
+                  <span className="candidate-party">{candidate.party || 'Independiente'}</span>
                   <p className="candidate-description">{candidate.description}</p>
                 </div>
 
@@ -345,6 +432,7 @@ export function VotingPage() {
                     e.stopPropagation();
                     handleSelectCandidate(candidate.id);
                   }}
+                  disabled={hasVoted}
                 >
                   {selectedCandidate === candidate.id ? 'Seleccionado' : 'Seleccionar'}
                 </button>
@@ -359,7 +447,7 @@ export function VotingPage() {
             <button
               className="btn-continue"
               onClick={handleConfirmVote}
-              disabled={!selectedCandidate}
+              disabled={!selectedCandidate || hasVoted}
             >
               Continuar
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -372,4 +460,3 @@ export function VotingPage() {
     </div>
   );
 }
-

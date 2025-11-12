@@ -1,261 +1,286 @@
 /**
  * ManageCandidates Component
- * Página para gestionar candidatos de una elección
+ * Gestión de candidatos para elecciones
  */
 
-import { useState } from 'react';
-import { Sidebar } from '@components/Sidebar';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { AdminLayout } from '@components/AdminLayout';
+import { electionsApi } from '@services/elections.api';
+import { candidatesApi } from '@services/candidates.api';
+import { useToast } from '@hooks/useToast';
+import { logger } from '@utils/logger';
+import type { Election } from '@services/elections.api';
+import type { Candidate } from '@services/candidates.api';
+import '@styles/admin-shared.css';
 import './ManageCandidates.css';
 
-interface Candidate {
-  id: string;
-  name: string;
-  description: string;
-  party: string;
-  imageUrl?: string;
-}
-
 export function ManageCandidates() {
+  const navigate = useNavigate();
+  const { showToast } = useToast();
+  const [elections, setElections] = useState<Election[]>([]);
+  const [selectedElection, setSelectedElection] = useState<string>('');
+  const [candidates, setCandidates] = useState<Candidate[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [newCandidate, setNewCandidate] = useState({
     name: '',
-    category: '',
     description: '',
-    image: null as File | null,
+    party: '',
+    photoUrl: '',
   });
 
-  const [candidates] = useState<Candidate[]>([
-    {
-      id: '1',
-      name: 'Candidato Alfa',
-      description: 'Propuestas enfocadas en la innovación tecnológica y el desarrollo sostenible para un futuro próspero.',
-      party: 'Partido Innovador',
-      imageUrl: 'https://ui-avatars.com/api/?name=Candidato+Alfa&background=2563eb&color=fff&size=128',
-    },
-    {
-      id: '2',
-      name: 'Opción Beta',
-      description: 'Una visión centrada en la justicia social, la igualdad de oportunidades y el fortalecimiento de los...',
-      party: 'Alianza Social',
-    },
-    {
-      id: '3',
-      name: 'Alternativa Gamma',
-      description: 'Foco en la reforma económica, la reducción de impuestos y el fomento del libre mercado para...',
-      party: 'Partido Innovador',
-    },
-  ]);
+  useEffect(() => {
+    loadElections();
+  }, []);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setNewCandidate((prev) => ({ ...prev, image: e.target.files![0] }));
+  useEffect(() => {
+    if (selectedElection) {
+      loadCandidates(selectedElection);
+    }
+  }, [selectedElection]);
+
+  const loadElections = async () => {
+    try {
+      const data = await electionsApi.getAll();
+      setElections(data);
+      if (data.length > 0 && !selectedElection) {
+        setSelectedElection(data[0].id);
+      }
+      logger.info('Elections loaded', { count: data.length });
+    } catch (error) {
+      logger.error('Error loading elections', error);
+      showToast('error', 'Error al cargar las elecciones');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleAddCandidate = () => {
-    console.log('Adding candidate:', newCandidate);
-    setShowAddModal(false);
-    // Aquí iría la lógica para agregar el candidato
+  const loadCandidates = async (electionId: string) => {
+    try {
+      const data = await candidatesApi.getByElection(electionId);
+      setCandidates(data);
+      logger.info('Candidates loaded', { count: data.length });
+    } catch (error) {
+      logger.error('Error loading candidates', error);
+      showToast('error', 'Error al cargar los candidatos');
+    }
   };
 
+  const handleAddCandidate = async () => {
+    if (!selectedElection) {
+      showToast('error', 'Selecciona una elección primero');
+      return;
+    }
+    if (!newCandidate.name.trim()) {
+      showToast('error', 'El nombre del candidato es requerido');
+      return;
+    }
+    if (!newCandidate.description.trim()) {
+      showToast('error', 'La descripción es requerida');
+      return;
+    }
+
+    try {
+      await candidatesApi.create({
+        name: newCandidate.name.trim(),
+        description: newCandidate.description.trim(),
+        party: newCandidate.party.trim() || undefined,
+        photoUrl: newCandidate.photoUrl.trim() || undefined,
+        electionId: selectedElection,
+      });
+
+      showToast('success', 'Candidato agregado exitosamente');
+      logger.info('Candidate added', { name: newCandidate.name });
+      setShowAddModal(false);
+      setNewCandidate({ name: '', description: '', party: '', photoUrl: '' });
+      loadCandidates(selectedElection);
+    } catch (error) {
+      logger.error('Error adding candidate', error);
+      showToast('error', 'Error al agregar el candidato');
+    }
+  };
+
+  const selectedElectionData = elections.find(e => e.id === selectedElection);
+
   return (
-    <div className="manage-candidates-container">
-      <Sidebar />
-
-      <div className="manage-candidates-wrapper">
-        {/* Header */}
-        <header className="admin-header">
-          <h1>Panel de Administración</h1>
-          <div className="header-actions">
-            <div className="search-box-header">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8" />
-                <path d="m21 21-4.35-4.35" />
-              </svg>
-              <input type="text" placeholder="Buscar..." />
-            </div>
-            <button className="btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-              </svg>
-            </button>
-            <button className="btn-icon">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="3" />
-                <path d="M12 1v6m0 6v6m6-12h-6m-6 0H1m17.66 5.34l-4.24 4.24m0-8.48l4.24 4.24M6.34 6.34l4.24 4.24m0 0l-4.24 4.24" />
-              </svg>
-            </button>
-            <div className="admin-user-info">
-              <img
-                src="https://ui-avatars.com/api/?name=Admin+Name&background=2563eb&color=fff"
-                alt="Avatar"
-                className="admin-avatar"
-              />
-              <div className="admin-user-details">
-                <span className="admin-user-name">Admin Name</span>
-                <span className="admin-user-role">Administrador</span>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="candidates-main">
-          <div className="page-header">
-            <div>
-              <h1>Gestionar Candidatos</h1>
-              <p className="page-subtitle">Elecciones Presidenciales 2024</p>
-            </div>
-            <button className="btn-add-candidate" onClick={() => setShowAddModal(true)}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="16" />
-                <line x1="8" y1="12" x2="16" y2="12" />
-              </svg>
-              Añadir Candidato
-            </button>
-          </div>
-
-          <div className="candidates-content">
-            {/* Left Column - Candidates List */}
-            <div className="candidates-list-section">
-              <div className="section-card">
-                <div className="section-card-header">
-                  <h2>Lista de Candidatos</h2>
-                  <p>Arrastra y suelta para reordenar la lista.</p>
-                </div>
-
-                <div className="candidates-list">
-                  {candidates.map((candidate) => (
-                    <div key={candidate.id} className="candidate-item">
-                      <div className="drag-handle">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="3" y1="8" x2="21" y2="8" />
-                          <line x1="3" y1="16" x2="21" y2="16" />
-                        </svg>
-                      </div>
-
-                      {candidate.imageUrl ? (
-                        <img
-                          src={candidate.imageUrl}
-                          alt={candidate.name}
-                          className="candidate-avatar"
-                        />
-                      ) : (
-                        <div className="candidate-avatar-placeholder">
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                            <circle cx="12" cy="7" r="4" />
-                          </svg>
-                        </div>
-                      )}
-
-                      <div className="candidate-info">
-                        <h3>{candidate.name}</h3>
-                        <p>{candidate.description}</p>
-                        <span className="candidate-party">{candidate.party}</span>
-                      </div>
-
-                      <div className="candidate-actions">
-                        <button className="btn-icon-action" title="Editar">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                            <path d="M18.5 2.5a2.12 2.12 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                          </svg>
-                        </button>
-                        <button className="btn-icon-action delete" title="Eliminar">
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <polyline points="3 6 5 6 21 6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column - Add Candidate Form */}
-            {showAddModal && (
-              <div className="add-candidate-section">
-                <div className="section-card">
-                  <h2>Añadir Nuevo Candidato</h2>
-
-                  <div className="form-group">
-                    <label htmlFor="candidateName">Nombre del Candidato/Opción</label>
-                    <input
-                      id="candidateName"
-                      type="text"
-                      placeholder="Ej: Juan Pérez"
-                      value={newCandidate.name}
-                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, name: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="category">Categoría (Opcional)</label>
-                    <input
-                      id="category"
-                      type="text"
-                      placeholder="Ej: Partido Político, Agrupación"
-                      value={newCandidate.category}
-                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, category: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label htmlFor="description">Descripción</label>
-                    <textarea
-                      id="description"
-                      rows={4}
-                      placeholder="Detalles, propuestas principales, etc."
-                      value={newCandidate.description}
-                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, description: e.target.value }))}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Imagen o Logo</label>
-                    <div className="file-upload-area">
-                      <input
-                        type="file"
-                        id="fileUpload"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        style={{ display: 'none' }}
-                      />
-                      <label htmlFor="fileUpload" className="file-upload-label">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                          <polyline points="17 8 12 3 7 8" />
-                          <line x1="12" y1="3" x2="12" y2="15" />
-                        </svg>
-                        <p>Haz clic para subir o arrastra y suelta</p>
-                        <span>SVG, PNG, JPG (MAX. 800x400px)</span>
-                      </label>
-                      {newCandidate.image && (
-                        <p className="file-name">{newCandidate.image.name}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="form-actions">
-                    <button className="btn-secondary" onClick={() => setShowAddModal(false)}>
-                      Cancelar
-                    </button>
-                    <button className="btn-primary" onClick={handleAddCandidate}>
-                      Guardar Candidato
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
+    <AdminLayout
+      title="Gestionar Candidatos"
+      subtitle="Administra los candidatos de cada elección"
+      actions={
+        <>
+          <button className="btn-secondary" onClick={() => navigate('/admin/dashboard')}>
+            Volver
+          </button>
+          <button 
+            className="btn-primary" 
+            onClick={() => setShowAddModal(true)}
+            disabled={!selectedElection}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Agregar Candidato
+          </button>
+        </>
+      }
+    >
+      {/* Election Selector */}
+      <div className="admin-card">
+        <div className="election-selector">
+          <label htmlFor="electionSelect">Seleccionar Elección:</label>
+          <select
+            id="electionSelect"
+            value={selectedElection}
+            onChange={(e) => setSelectedElection(e.target.value)}
+          >
+            {elections.map((election) => (
+              <option key={election.id} value={election.id}>
+                {election.title} - {election.status}
+              </option>
+            ))}
+          </select>
+          {selectedElectionData && (
+            <span className="election-info">
+              {candidates.length} candidatos
+            </span>
+          )}
+        </div>
       </div>
-    </div>
+
+      {loading ? (
+        <div className="loading-state">
+          <div className="spinner"></div>
+          <p>Cargando candidatos...</p>
+        </div>
+      ) : (
+        <>
+          {candidates.length > 0 ? (
+            <div className="candidates-grid">
+              {candidates.map((candidate) => (
+                <div key={candidate.id} className="candidate-card">
+                  <img
+                    src={candidate.photoUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(candidate.name)}&background=2563eb&color=fff&size=200`}
+                    alt={candidate.name}
+                    className="candidate-photo"
+                  />
+                  <div className="candidate-info">
+                    <h3>{candidate.name}</h3>
+                    {candidate.party && (
+                      <span className="party-badge">{candidate.party}</span>
+                    )}
+                    <p className="candidate-description">{candidate.description}</p>
+                    <div className="candidate-stats">
+                      <span className="stat">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <line x1="12" y1="18" x2="12" y2="12" />
+                          <line x1="9" y1="15" x2="15" y2="15" />
+                        </svg>
+                        {candidate.voteCount} votos
+                      </span>
+                      <span className={`badge ${candidate.isActive ? 'badge-success' : 'badge-default'}`}>
+                        {candidate.isActive ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-state">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                <circle cx="9" cy="7" r="4" />
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+              </svg>
+              <h3>No hay candidatos</h3>
+              <p>Agrega candidatos para esta elección</p>
+              <button className="btn-primary" onClick={() => setShowAddModal(true)}>
+                Agregar Primer Candidato
+              </button>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Add Candidate Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Agregar Nuevo Candidato</h3>
+              <button className="btn-close" onClick={() => setShowAddModal(false)}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="form-group">
+                <label htmlFor="candidateName">Nombre *</label>
+                <input
+                  id="candidateName"
+                  type="text"
+                  placeholder="Ej. Juan Pérez"
+                  value={newCandidate.name}
+                  onChange={(e) => setNewCandidate({ ...newCandidate, name: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="candidateParty">Partido (opcional)</label>
+                <input
+                  id="candidateParty"
+                  type="text"
+                  placeholder="Ej. Partido Progresista"
+                  value={newCandidate.party}
+                  onChange={(e) => setNewCandidate({ ...newCandidate, party: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="candidateDescription">Descripción *</label>
+                <textarea
+                  id="candidateDescription"
+                  rows={4}
+                  placeholder="Describe las propuestas del candidato..."
+                  value={newCandidate.description}
+                  onChange={(e) => setNewCandidate({ ...newCandidate, description: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="candidatePhoto">URL de Foto (opcional)</label>
+                <input
+                  id="candidatePhoto"
+                  type="url"
+                  placeholder="https://ejemplo.com/foto.jpg"
+                  value={newCandidate.photoUrl}
+                  onChange={(e) => setNewCandidate({ ...newCandidate, photoUrl: e.target.value })}
+                />
+                <p className="help-text">
+                  Si no proporcionas una foto, se generará un avatar automáticamente
+                </p>
+              </div>
+            </div>
+
+            <div className="modal-footer">
+              <button className="btn-secondary" onClick={() => setShowAddModal(false)}>
+                Cancelar
+              </button>
+              <button className="btn-primary" onClick={handleAddCandidate}>
+                Agregar Candidato
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </AdminLayout>
   );
 }
-

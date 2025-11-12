@@ -1,5 +1,6 @@
 import { DataSource } from 'typeorm';
 import { seedUsers } from './users.seed';
+import { seedElections } from './elections.seed';
 import * as dotenv from 'dotenv';
 
 dotenv.config();
@@ -24,6 +25,7 @@ async function runSeeds() {
 
     // Run seeds
     await seedUsers(dataSource);
+    await seedElections(dataSource);
 
     console.log('\n✨ All seeds completed successfully!');
     await dataSource.destroy();
@@ -36,4 +38,3 @@ async function runSeeds() {
 }
 
 runSeeds();
-

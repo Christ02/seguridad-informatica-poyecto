@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "composite": true,
+    "skipLibCheck": true
+  },
+  "files": [],
+  "include": ["*.ts"],
+  "exclude": ["node_modules", "dist", "build", "backend", "frontend"],
+  "references": [
+    { "path": "./backend" },
+    { "path": "./frontend" }
+  ]
+}
+

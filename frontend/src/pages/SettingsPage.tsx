@@ -41,6 +41,13 @@ export function SettingsPage() {
         </header>
 
         <main className="settings-main">
+          {/* Info Box */}
+          <div className="page-info-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <p>Tus preferencias se guardan automáticamente y están sincronizadas en todos tus dispositivos</p>
+          </div>
           {/* Notifications */}
           <div className="settings-section">
             <h2>Notificaciones</h2>

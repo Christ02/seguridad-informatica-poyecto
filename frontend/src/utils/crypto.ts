@@ -242,7 +242,7 @@ export async function blindData(data: string): Promise<{
  */
 export function unblindSignature(
   blindSignature: string,
-  blindingFactor: string
+  _blindingFactor: string
 ): string {
   // En una implementación real, aplicaríamos la operación inversa
   // del cegado usando el blinding factor

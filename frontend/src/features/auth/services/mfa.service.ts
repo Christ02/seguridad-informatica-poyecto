@@ -4,7 +4,7 @@
  */
 
 import { apiService } from '@services/api.service';
-import type { MFASetup } from '@types/index';
+import type { MFASetup } from '@/types';
 
 // ============= TOTP (Time-based One-Time Password) =============
 
@@ -139,25 +139,36 @@ function preparePublicKeyRequestOptions(
  * Convierte credencial a JSON serializable
  */
 function credentialToJSON(credential: PublicKeyCredential): Record<string, unknown> {
-  const response = credential.response as AuthenticatorAttestationResponse;
+  const response = credential.response;
 
-  return {
+  // Determinar si es attestation o assertion
+  const isAttestation = 'attestationObject' in response;
+
+  const result: Record<string, unknown> = {
     id: credential.id,
     type: credential.type,
     rawId: arrayBufferToBase64(credential.rawId),
     response: {
       clientDataJSON: arrayBufferToBase64(response.clientDataJSON),
-      attestationObject: response.attestationObject
-        ? arrayBufferToBase64(response.attestationObject)
-        : undefined,
-      authenticatorData: (response as AuthenticatorAssertionResponse).authenticatorData
-        ? arrayBufferToBase64((response as AuthenticatorAssertionResponse).authenticatorData)
-        : undefined,
-      signature: (response as AuthenticatorAssertionResponse).signature
-        ? arrayBufferToBase64((response as AuthenticatorAssertionResponse).signature)
-        : undefined,
     },
   };
+
+  if (isAttestation) {
+    const attestationResponse = response as AuthenticatorAttestationResponse;
+    (result.response as Record<string, unknown>).attestationObject = attestationResponse.attestationObject
+      ? arrayBufferToBase64(attestationResponse.attestationObject)
+      : undefined;
+  } else {
+    const assertionResponse = response as AuthenticatorAssertionResponse;
+    (result.response as Record<string, unknown>).authenticatorData = assertionResponse.authenticatorData
+      ? arrayBufferToBase64(assertionResponse.authenticatorData)
+      : undefined;
+    (result.response as Record<string, unknown>).signature = assertionResponse.signature
+      ? arrayBufferToBase64(assertionResponse.signature)
+      : undefined;
+  }
+
+  return result;
 }
 
 /**

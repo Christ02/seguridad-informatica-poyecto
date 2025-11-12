@@ -13,16 +13,21 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
     return;
   }
 
-  console.log('🌱 Seeding users...');
+  console.log('🌱 Seeding users for Guatemala...');
 
   const bcryptRounds = 12;
 
-  // Usuario normal de prueba
+  // Usuario normal de prueba (Votante)
   const normalUser = userRepository.create({
     email: 'user@test.com',
-    identificationNumber: '1234567890',
+    dpi: '2958674130101', // DPI válido de Guatemala (13 dígitos)
+    firstName: 'María',
+    lastName: 'González López',
+    dateOfBirth: new Date('1995-05-15'),
+    phoneNumber: '45678901', // Teléfono de Guatemala (8 dígitos)
+    department: 'Guatemala',
+    municipality: 'Guatemala',
     password: await bcrypt.hash('password123', bcryptRounds),
-    fullName: 'Usuario de Prueba',
     role: UserRole.VOTER,
     isActive: true,
     isVerified: true,
@@ -32,9 +37,14 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   // Usuario administrador de prueba
   const adminUser = userRepository.create({
     email: 'admin@test.com',
-    identificationNumber: 'admin',
+    dpi: '1234567890101', // DPI de admin
+    firstName: 'Carlos',
+    lastName: 'Ramírez Mendoza',
+    dateOfBirth: new Date('1985-03-20'),
+    phoneNumber: '23456789',
+    department: 'Guatemala',
+    municipality: 'Mixco',
     password: await bcrypt.hash('admin123', bcryptRounds),
-    fullName: 'Administrador del Sistema',
     role: UserRole.ADMIN,
     isActive: true,
     isVerified: true,
@@ -44,9 +54,14 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   // Super Admin
   const superAdminUser = userRepository.create({
     email: 'superadmin@test.com',
-    identificationNumber: 'superadmin',
+    dpi: '9876543210101', // DPI de super admin
+    firstName: 'Ana',
+    lastName: 'Martínez Pérez',
+    dateOfBirth: new Date('1980-08-10'),
+    phoneNumber: '34567890',
+    department: 'Guatemala',
+    municipality: 'Villa Nueva',
     password: await bcrypt.hash('superadmin123', bcryptRounds),
-    fullName: 'Super Administrador',
     role: UserRole.SUPER_ADMIN,
     isActive: true,
     isVerified: true,
@@ -56,9 +71,14 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   // Auditor
   const auditorUser = userRepository.create({
     email: 'auditor@test.com',
-    identificationNumber: '9876543210',
+    dpi: '5432167890101', // DPI de auditor
+    firstName: 'José',
+    lastName: 'Hernández García',
+    dateOfBirth: new Date('1990-12-05'),
+    phoneNumber: '56789012',
+    department: 'Sacatepéquez',
+    municipality: 'Antigua Guatemala',
     password: await bcrypt.hash('auditor123', bcryptRounds),
-    fullName: 'Auditor del Sistema',
     role: UserRole.AUDITOR,
     isActive: true,
     isVerified: true,
@@ -68,24 +88,31 @@ export async function seedUsers(dataSource: DataSource): Promise<void> {
   await userRepository.save([normalUser, adminUser, superAdminUser, auditorUser]);
 
   console.log('✅ Users seeded successfully!');
-  console.log('\n📋 Test Credentials:');
+  console.log('\n📋 Credenciales de Prueba (Guatemala):');
   console.log('==========================================');
-  console.log('👤 Normal User:');
-  console.log('   ID: 1234567890');
+  console.log('👤 Votante Normal:');
+  console.log('   DPI: 2958674130101');
   console.log('   Email: user@test.com');
   console.log('   Password: password123');
-  console.log('\n👨‍💼 Admin:');
-  console.log('   ID: admin');
+  console.log('   Nombre: María González López');
+  console.log('   Teléfono: 45678901');
+  console.log('\n👨‍💼 Administrador:');
+  console.log('   DPI: 1234567890101');
   console.log('   Email: admin@test.com');
   console.log('   Password: admin123');
-  console.log('\n🔐 Super Admin:');
-  console.log('   ID: superadmin');
+  console.log('   Nombre: Carlos Ramírez Mendoza');
+  console.log('   Teléfono: 23456789');
+  console.log('\n🔐 Super Administrador:');
+  console.log('   DPI: 9876543210101');
   console.log('   Email: superadmin@test.com');
   console.log('   Password: superadmin123');
+  console.log('   Nombre: Ana Martínez Pérez');
+  console.log('   Teléfono: 34567890');
   console.log('\n🔍 Auditor:');
-  console.log('   ID: 9876543210');
+  console.log('   DPI: 5432167890101');
   console.log('   Email: auditor@test.com');
   console.log('   Password: auditor123');
+  console.log('   Nombre: José Hernández García');
+  console.log('   Teléfono: 56789012');
   console.log('==========================================\n');
 }
-

@@ -28,6 +28,13 @@ export function sanitizeText(text: string): string {
 }
 
 /**
+ * Función genérica para sanitizar inputs
+ */
+export function sanitizeInput(input: string): string {
+  return sanitizeText(input);
+}
+
+/**
  * Sanitiza email
  */
 export function sanitizeEmail(email: string): string {
@@ -142,7 +149,7 @@ export function sanitizeSearchInput(input: string): string {
  */
 export function initDOMPurify(): void {
   // Hook para agregar logging de intentos de XSS
-  DOMPurify.addHook('uponSanitizeElement', (node, data) => {
+  DOMPurify.addHook('uponSanitizeElement', (_node, data) => {
     if (data.allowedTags && !data.allowedTags[data.tagName as keyof typeof data.allowedTags]) {
       console.warn('XSS attempt detected:', {
         tagName: data.tagName,
@@ -152,7 +159,7 @@ export function initDOMPurify(): void {
   });
 
   // Hook para atributos
-  DOMPurify.addHook('uponSanitizeAttribute', (node, data) => {
+  DOMPurify.addHook('uponSanitizeAttribute', (_node, data) => {
     // Prevenir data attributes maliciosos
     if (data.attrName && data.attrName.startsWith('on')) {
       console.warn('Malicious attribute detected:', {

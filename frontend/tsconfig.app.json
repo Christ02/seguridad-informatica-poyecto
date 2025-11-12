@@ -27,7 +27,8 @@
       "@services/*": ["./src/services/*"],
       "@utils/*": ["./src/utils/*"],
       "@config/*": ["./src/config/*"],
-      "@types/*": ["./src/types/*"]
+      "@types/*": ["./src/types/*"],
+      "@styles/*": ["./src/styles/*"]
     },
 
     /* Linting & Security */

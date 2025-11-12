@@ -36,7 +36,15 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=4000
-      - DATABASE_URL=postgresql://voting_user:voting_pass@postgres:5432/voting_db
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=voting_user
+      - DATABASE_PASSWORD=voting_pass
+      - DATABASE_NAME=voting_db
+      - JWT_SECRET=voting_jwt_secret_key_2025_change_in_production
+      - JWT_EXPIRATION=15m
+      - JWT_REFRESH_SECRET=voting_jwt_refresh_secret_key_2025
+      - JWT_REFRESH_EXPIRATION=7d
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - MONGODB_URI=mongodb://mongo:27017/voting_audit
@@ -59,14 +67,8 @@ services:
       - POSTGRES_DB=voting_db
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./backend/database/init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - voting-network
-    command: >
-      postgres
-      -c ssl=on
-      -c ssl_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
-      -c ssl_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
 
   # Redis - Cache y Rate Limiting
   redis:

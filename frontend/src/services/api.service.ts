@@ -4,9 +4,11 @@
  * Incluye retry logic, timeouts, interceptors de seguridad
  */
 
-import axios, { AxiosInstance, AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
+import axios, { AxiosError } from 'axios';
+import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import { securityConfig } from '@config/security.config';
 import { hashSHA256 } from '@utils/crypto';
+import { logger } from '@utils/logger';
 import Cookies from 'js-cookie';
 
 // ============= API Client Configuration =============
@@ -35,6 +37,12 @@ class APIService {
     // Request Interceptor: Agregar tokens y headers de seguridad
     this.client.interceptors.request.use(
       async (config) => {
+        // Agregar JWT Token
+        const accessToken = sessionStorage.getItem('accessToken');
+        if (accessToken) {
+          config.headers['Authorization'] = `Bearer ${accessToken}`;
+        }
+
         // Agregar CSRF token
         const csrfToken = this.getCSRFToken();
         if (csrfToken) {
@@ -125,8 +133,9 @@ class APIService {
       const response = await this.client.get('/auth/csrf-token');
       const token = response.data.csrfToken;
       this.setCSRFToken(token);
+      logger.debug('CSRF token fetched');
     } catch (error) {
-      console.error('Failed to fetch CSRF token:', error);
+      logger.error('Failed to fetch CSRF token', error);
     }
   }
 
@@ -239,7 +248,7 @@ export async function safeApiCall<T>(
       axiosError.message ||
       'An error occurred';
 
-    console.error('API Error:', errorMessage);
+    logger.error('API Error', error, { message: errorMessage });
 
     return { data: null, error: errorMessage };
   }

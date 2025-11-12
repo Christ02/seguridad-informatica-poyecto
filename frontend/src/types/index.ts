@@ -15,12 +15,14 @@ export interface User {
   lastLogin?: string;
 }
 
-export enum UserRole {
-  VOTER = 'voter',
-  AUDITOR = 'auditor',
-  ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin',
-}
+export const UserRole = {
+  VOTER: 'VOTER',
+  AUDITOR: 'AUDITOR',
+  ADMIN: 'ADMIN',
+  SUPER_ADMIN: 'SUPER_ADMIN',
+} as const;
+
+export type UserRole = typeof UserRole[keyof typeof UserRole];
 
 export interface AuthTokens {
   accessToken: string;
@@ -53,12 +55,14 @@ export interface Election {
   totalVotes?: number;
 }
 
-export enum ElectionStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  CLOSED = 'closed',
-  COMPLETED = 'completed',
-}
+export const ElectionStatus = {
+  DRAFT: 'draft',
+  ACTIVE: 'active',
+  CLOSED: 'closed',
+  COMPLETED: 'completed',
+} as const;
+
+export type ElectionStatus = typeof ElectionStatus[keyof typeof ElectionStatus];
 
 export interface Candidate {
   id: string;
@@ -134,17 +138,19 @@ export interface AuditLog {
   ipHash: string;
 }
 
-export enum AuditEventType {
-  LOGIN = 'login',
-  LOGOUT = 'logout',
-  LOGIN_FAILED = 'login_failed',
-  MFA_ENABLED = 'mfa_enabled',
-  MFA_DISABLED = 'mfa_disabled',
-  VOTE_CAST = 'vote_cast',
-  VOTE_VERIFIED = 'vote_verified',
-  ELECTION_VIEWED = 'election_viewed',
-  SESSION_TIMEOUT = 'session_timeout',
-}
+export const AuditEventType = {
+  LOGIN: 'login',
+  LOGOUT: 'logout',
+  LOGIN_FAILED: 'login_failed',
+  MFA_ENABLED: 'mfa_enabled',
+  MFA_DISABLED: 'mfa_disabled',
+  VOTE_CAST: 'vote_cast',
+  VOTE_VERIFIED: 'vote_verified',
+  ELECTION_VIEWED: 'election_viewed',
+  SESSION_TIMEOUT: 'session_timeout',
+} as const;
+
+export type AuditEventType = typeof AuditEventType[keyof typeof AuditEventType];
 
 // ============= Form Types =============
 
@@ -180,11 +186,13 @@ export interface SecurityEvent {
   details: Record<string, unknown>;
 }
 
-export enum SecurityEventType {
-  SUSPICIOUS_ACTIVITY = 'suspicious_activity',
-  RATE_LIMIT_EXCEEDED = 'rate_limit_exceeded',
-  INVALID_TOKEN = 'invalid_token',
-  CSRF_DETECTED = 'csrf_detected',
-  XSS_ATTEMPT = 'xss_attempt',
-}
+export const SecurityEventType = {
+  SUSPICIOUS_ACTIVITY: 'suspicious_activity',
+  RATE_LIMIT_EXCEEDED: 'rate_limit_exceeded',
+  INVALID_TOKEN: 'invalid_token',
+  CSRF_DETECTED: 'csrf_detected',
+  XSS_ATTEMPT: 'xss_attempt',
+} as const;
+
+export type SecurityEventType = typeof SecurityEventType[keyof typeof SecurityEventType];
 

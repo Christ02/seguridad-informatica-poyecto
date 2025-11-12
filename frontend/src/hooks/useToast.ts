@@ -4,7 +4,7 @@
  */
 
 import { useState, useCallback } from 'react';
-import { ToastType } from '@components/Toast';
+import type { ToastType } from '@components/Toast';
 
 interface ToastItem {
   id: string;
@@ -18,7 +18,12 @@ export function useToast() {
 
   const addToast = useCallback((type: ToastType, message: string, duration?: number) => {
     const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const newToast: ToastItem = { id, type, message, duration };
+    const newToast: ToastItem = {
+      id,
+      type,
+      message,
+      ...(duration !== undefined && { duration }),
+    };
     
     setToasts((prev) => [...prev, newToast]);
     
@@ -57,6 +62,13 @@ export function useToast() {
     [addToast]
   );
 
+  const showToast = useCallback(
+    (type: ToastType, message: string, duration?: number) => {
+      return addToast(type, message, duration);
+    },
+    [addToast]
+  );
+
   return {
     toasts,
     addToast,
@@ -65,6 +77,7 @@ export function useToast() {
     error,
     warning,
     info,
+    showToast,
   };
 }
 

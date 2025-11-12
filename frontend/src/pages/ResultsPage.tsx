@@ -1,121 +1,158 @@
 /**
- * ResultsPage Component
- * Página pública de resultados de elecciones
+ * Enhanced ResultsPage Component
+ * Página de visualización de resultados con análisis detallado
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import { Sidebar } from '@components/Sidebar';
-import { Bar, Doughnut } from 'react-chartjs-2';
+import { adminApi } from '@services/admin.api';
+import type { DetailedResults, Demographics } from '@services/admin.api';
+import { useAuthStore } from '@features/auth/store/authStore';
+import { UserRole } from '@/types';
 import {
   Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
   CategoryScale,
   LinearScale,
   BarElement,
-  ArcElement,
   Title,
-  Tooltip,
-  Legend,
 } from 'chart.js';
+import { Pie, Bar } from 'react-chartjs-2';
 import './ResultsPage.css';
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, ArcElement, Title, Tooltip, Legend);
-
-interface Election {
-  id: string;
-  title: string;
-  status: 'active' | 'completed' | 'upcoming';
-  startDate: string;
-  endDate: string;
-  totalVotes: number;
-  eligibleVoters: number;
-}
-
-interface CandidateResult {
-  id: string;
-  name: string;
-  party: string;
-  votes: number;
-  percentage: number;
-  imageUrl?: string;
-}
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 export function ResultsPage() {
-  const [selectedElection, setSelectedElection] = useState<string>('1');
-  const [viewMode, setViewMode] = useState<'general' | 'regional'>('general');
+  const { electionId } = useParams();
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
 
-  const elections: Election[] = [
-    {
-      id: '1',
-      title: 'Elección Presidencial 2025',
-      status: 'active',
-      startDate: '2025-11-15',
-      endDate: '2025-11-30',
-      totalVotes: 1248567,
-      eligibleVoters: 3500000,
-    },
-    {
-      id: '2',
-      title: 'Reforma Estatutaria',
-      status: 'completed',
-      startDate: '2025-10-01',
-      endDate: '2025-10-15',
-      totalVotes: 2856345,
-      eligibleVoters: 3500000,
-    },
-  ];
+  const [results, setResults] = useState<DetailedResults | null>(null);
+  const [demographics, setDemographics] = useState<Demographics | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'results' | 'demographics'>('results');
 
-  const results: CandidateResult[] = [
-    {
-      id: '1',
-      name: 'María González',
-      party: 'Partido Progresista',
-      votes: 512345,
-      percentage: 41.0,
-      imageUrl: 'https://ui-avatars.com/api/?name=Maria+Gonzalez&background=2563eb&color=fff&size=128',
-    },
-    {
-      id: '2',
-      name: 'Juan Martínez',
-      party: 'Alianza Nacional',
-      votes: 487123,
-      percentage: 39.0,
-      imageUrl: 'https://ui-avatars.com/api/?name=Juan+Martinez&background=10b981&color=fff&size=128',
-    },
-    {
-      id: '3',
-      name: 'Ana Rodríguez',
-      party: 'Movimiento Social',
-      votes: 249099,
-      percentage: 20.0,
-      imageUrl: 'https://ui-avatars.com/api/?name=Ana+Rodriguez&background=f59e0b&color=fff&size=128',
-    },
-  ];
+  useEffect(() => {
+    loadData();
+  }, [electionId]);
 
-  const currentElection = elections.find(e => e.id === selectedElection);
-  const participationRate = currentElection
-    ? ((currentElection.totalVotes / currentElection.eligibleVoters) * 100).toFixed(1)
-    : '0';
+  const loadData = async () => {
+    if (!electionId) {
+      setError('ID de elección no válido');
+      setLoading(false);
+      return;
+    }
 
-  const barChartData = {
-    labels: results.map(r => r.name),
-    datasets: [
-      {
-        label: 'Votos',
-        data: results.map(r => r.votes),
-        backgroundColor: ['#2563eb', '#10b981', '#f59e0b'],
-        borderRadius: 8,
-      },
-    ],
+    try {
+      setLoading(true);
+      
+      if (isAdmin) {
+        const [resultsData, demographicsData] = await Promise.all([
+          adminApi.getDetailedResults(electionId),
+          adminApi.getDemographics(electionId),
+        ]);
+        setResults(resultsData);
+        setDemographics(demographicsData);
+      } else {
+        // Para usuarios normales, usar API pública
+        const resultsData = await adminApi.getDetailedResults(electionId);
+        setResults(resultsData);
+      }
+    } catch (err: any) {
+      console.error('Error loading results:', err);
+      setError('Error al cargar los resultados');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const barChartOptions = {
+  // Colores para gráficos
+  const colors = [
+    '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+    '#ec4899', '#14b8a6', '#f97316', '#06b6d4', '#84cc16'
+  ];
+
+  // Configuración del gráfico de pie
+  const pieData = results ? {
+    labels: results.results.candidates.map(c => c.name),
+    datasets: [{
+      data: results.results.candidates.map(c => c.votes),
+      backgroundColor: colors.slice(0, results.results.candidates.length),
+      borderColor: '#ffffff',
+      borderWidth: 2,
+    }],
+  } : null;
+
+  // Configuración del gráfico de barras
+  const barData = results ? {
+    labels: results.results.candidates.map(c => c.name),
+    datasets: [{
+      label: 'Votos',
+      data: results.results.candidates.map(c => c.votes),
+      backgroundColor: colors.slice(0, results.results.candidates.length),
+      borderRadius: 8,
+    }],
+  } : null;
+
+  // Configuración de demografía por departamento
+  const deptData = demographics ? {
+    labels: demographics.byDepartment.map(d => d.department),
+    datasets: [{
+      label: 'Votos',
+      data: demographics.byDepartment.map(d => d.votes),
+      backgroundColor: '#3b82f6',
+      borderRadius: 8,
+    }],
+  } : null;
+
+  // Configuración de demografía por edad
+  const ageData = demographics ? {
+    labels: demographics.byAge.map(a => a.ageGroup),
+    datasets: [{
+      data: demographics.byAge.map(a => a.votes),
+      backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'],
+      borderColor: '#ffffff',
+      borderWidth: 2,
+    }],
+  } : null;
+
+  const chartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        display: false,
+        position: 'bottom' as const,
+        labels: {
+          padding: 15,
+          font: {
+            size: 12,
+          },
+        },
       },
-      title: {
+      tooltip: {
+        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+        padding: 12,
+        borderRadius: 8,
+        titleFont: {
+          size: 14,
+          weight: 'bold',
+        },
+        bodyFont: {
+          size: 13,
+        },
+      },
+    },
+  };
+
+  const barOptions = {
+    ...chartOptions,
+    plugins: {
+      ...chartOptions.plugins,
+      legend: {
         display: false,
       },
     },
@@ -123,242 +160,282 @@ export function ResultsPage() {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: (value: number) => value.toLocaleString(),
+          precision: 0,
+        },
+        grid: {
+          color: 'rgba(0, 0, 0, 0.05)',
+        },
+      },
+      x: {
+        grid: {
+          display: false,
         },
       },
     },
   };
 
-  const doughnutData = {
-    labels: ['Votantes', 'No votantes'],
-    datasets: [
-      {
-        data: [
-          currentElection?.totalVotes || 0,
-          (currentElection?.eligibleVoters || 0) - (currentElection?.totalVotes || 0),
-        ],
-        backgroundColor: ['#2563eb', '#e2e8f0'],
-        borderWidth: 0,
-      },
-    ],
-  };
+  if (loading) {
+    return (
+      <div className="results-page-container">
+        <Sidebar />
+        <main className="results-page-main">
+          <div className="loading-state">
+            <div className="spinner"></div>
+            <p>Cargando resultados...</p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-  const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'bottom' as const,
-      },
-    },
-  };
+  if (error || !results) {
+    return (
+      <div className="results-page-container">
+        <Sidebar />
+        <main className="results-page-main">
+          <div className="error-state">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h3>Error al cargar resultados</h3>
+            <p>{error}</p>
+            <button className="btn-retry" onClick={loadData}>Reintentar</button>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
-  const handleExportResults = () => {
-    const data = {
-      election: currentElection?.title,
-      date: new Date().toISOString(),
-      results: results,
-      totalVotes: currentElection?.totalVotes,
-      participationRate: `${participationRate}%`,
-    };
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `resultados-${selectedElection}-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+  const totalVotes = results.results.totalVotes;
+  const winner = results.results.winner;
 
   return (
     <div className="results-page-container">
       <Sidebar />
 
-      <div className="results-page-wrapper">
+      <main className="results-page-main">
         {/* Header */}
         <header className="results-header">
           <div>
-            <h1>Resultados de Elecciones</h1>
-            <p className="results-description">
-              Resultados oficiales en tiempo real de las elecciones
-            </p>
+            <h1>{results.election.title}</h1>
+            <p className="results-subtitle">{results.election.description}</p>
+            <div className="election-meta">
+              <span className={`status-badge status-${results.election.status.toLowerCase()}`}>
+                {results.election.status}
+              </span>
+              <span className="meta-divider">•</span>
+              <span>{totalVotes.toLocaleString()} votos totales</span>
+            </div>
           </div>
-          <button className="btn-export-results" onClick={handleExportResults}>
-            <svg
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
+          <button className="btn-export">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
               <polyline points="7 10 12 15 17 10" />
               <line x1="12" y1="15" x2="12" y2="3" />
             </svg>
-            Exportar Resultados
+            Exportar Reporte
           </button>
         </header>
 
-        {/* Main Content */}
-        <main className="results-main">
-          {/* Election Selector */}
-          <div className="election-selector">
-            <label>Seleccionar Elección:</label>
-            <select
-              value={selectedElection}
-              onChange={(e) => setSelectedElection(e.target.value)}
-            >
-              {elections.map((election) => (
-                <option key={election.id} value={election.id}>
-                  {election.title} - {election.status === 'active' ? 'En Curso' : 'Finalizada'}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Info Box */}
+        <div className="page-info-box">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 12l2 2 4-4" />
+            <circle cx="12" cy="12" r="10" />
+          </svg>
+          <p>Los resultados son verificables y auditables mediante tecnología blockchain</p>
+        </div>
 
-          {/* Stats Cards */}
-          <div className="stats-cards">
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#eff6ff' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-              </div>
-              <div className="stat-content">
-                <span className="stat-label">Total de Votos</span>
-                <span className="stat-value">{currentElection?.totalVotes.toLocaleString()}</span>
-              </div>
+        {/* Winner Card */}
+        {winner && (
+          <div className="winner-card">
+            <div className="winner-trophy">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                <path d="M4 22h16" />
+                <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+              </svg>
             </div>
-
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#d1fae5' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2">
-                  <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-                </svg>
-              </div>
-              <div className="stat-content">
-                <span className="stat-label">Participación</span>
-                <span className="stat-value">{participationRate}%</span>
-              </div>
-            </div>
-
-            <div className="stat-card">
-              <div className="stat-icon" style={{ background: '#fef3c7' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                  <circle cx="8.5" cy="7" r="4" />
-                  <line x1="20" y1="8" x2="20" y2="14" />
-                  <line x1="23" y1="11" x2="17" y2="11" />
-                </svg>
-              </div>
-              <div className="stat-content">
-                <span className="stat-label">Votantes Registrados</span>
-                <span className="stat-value">{currentElection?.eligibleVoters.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Results Table */}
-          <div className="results-section">
-            <div className="section-header">
-              <h2>Resultados por Candidato</h2>
-              <div className="view-toggle">
-                <button
-                  className={viewMode === 'general' ? 'active' : ''}
-                  onClick={() => setViewMode('general')}
-                >
-                  General
-                </button>
-                <button
-                  className={viewMode === 'regional' ? 'active' : ''}
-                  onClick={() => setViewMode('regional')}
-                >
-                  Por Región
-                </button>
-              </div>
-            </div>
-
-            <div className="results-table">
-              {results.map((candidate, index) => (
-                <div key={candidate.id} className="result-row">
-                  <div className="result-rank">#{index + 1}</div>
-                  <img src={candidate.imageUrl} alt={candidate.name} className="result-avatar" />
-                  <div className="result-info">
-                    <h3>{candidate.name}</h3>
-                    <span className="result-party">{candidate.party}</span>
-                  </div>
-                  <div className="result-votes">
-                    <span className="votes-number">{candidate.votes.toLocaleString()}</span>
-                    <span className="votes-label">votos</span>
-                  </div>
-                  <div className="result-progress">
-                    <div className="progress-bar">
-                      <div
-                        className="progress-fill"
-                        style={{
-                          width: `${candidate.percentage}%`,
-                          background: index === 0 ? '#2563eb' : index === 1 ? '#10b981' : '#f59e0b',
-                        }}
-                      />
-                    </div>
-                    <span className="progress-percentage">{candidate.percentage}%</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Charts */}
-          <div className="charts-section">
-            <div className="chart-card">
-              <h3>Distribución de Votos</h3>
-              <div className="chart-container">
-                <Bar data={barChartData} options={barChartOptions} />
-              </div>
-            </div>
-
-            <div className="chart-card">
-              <h3>Participación Electoral</h3>
-              <div className="chart-container">
-                <Doughnut data={doughnutData} options={doughnutOptions} />
-              </div>
-              <div className="participation-stats">
-                <div className="participation-item">
-                  <div className="participation-dot" style={{ background: '#2563eb' }} />
-                  <span>Votaron: {currentElection?.totalVotes.toLocaleString()}</span>
-                </div>
-                <div className="participation-item">
-                  <div className="participation-dot" style={{ background: '#e2e8f0' }} />
-                  <span>
-                    No votaron:{' '}
-                    {((currentElection?.eligibleVoters || 0) - (currentElection?.totalVotes || 0)).toLocaleString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Security Notice */}
-          <div className="security-notice">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            <div>
-              <strong>Resultados Verificables</strong>
-              <p>
-                Todos los votos están cifrados con RSA-4096 y pueden ser verificados de forma independiente.
-                Los resultados son auditables y transparentes.
+            <div className="winner-info">
+              <p className="winner-label">Ganador</p>
+              <h2 className="winner-name">{winner.name}</h2>
+              <p className="winner-stats">
+                {winner.votes.toLocaleString()} votos ({winner.percentage.toFixed(2)}%)
               </p>
             </div>
           </div>
-        </main>
-      </div>
+        )}
+
+        {/* Tabs */}
+        {isAdmin && demographics && (
+          <div className="results-tabs">
+            <button
+              className={`tab-btn ${activeTab === 'results' ? 'active' : ''}`}
+              onClick={() => setActiveTab('results')}
+            >
+              Resultados
+            </button>
+            <button
+              className={`tab-btn ${activeTab === 'demographics' ? 'active' : ''}`}
+              onClick={() => setActiveTab('demographics')}
+            >
+              Análisis Demográfico
+            </button>
+          </div>
+        )}
+
+        {/* Results Tab */}
+        {activeTab === 'results' && (
+          <>
+            {/* Charts Grid */}
+            <div className="charts-grid">
+              <div className="chart-card">
+                <h3>Distribución de Votos</h3>
+                <div className="chart-wrapper">
+                  {pieData && <Pie data={pieData} options={chartOptions as any} />}
+                </div>
+              </div>
+
+              <div className="chart-card">
+                <h3>Comparación de Candidatos</h3>
+                <div className="chart-wrapper">
+                  {barData && <Bar data={barData} options={barOptions as any} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Candidates Table */}
+            <div className="candidates-table-card">
+              <h3>Resultados Detallados</h3>
+              <div className="candidates-table">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Posición</th>
+                      <th>Candidato</th>
+                      <th>Partido</th>
+                      <th>Votos</th>
+                      <th>Porcentaje</th>
+                      <th>Diferencia</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {results.results.candidates.map((candidate, index) => {
+                      const firstCandidate = results.results.candidates[0];
+                      const diff = index === 0 || !firstCandidate ? 0 : firstCandidate.votes - candidate.votes;
+                      return (
+                        <tr key={candidate.id} className={index === 0 ? 'winner-row' : ''}>
+                          <td>
+                            <span className="position-badge">{index + 1}</span>
+                          </td>
+                          <td>
+                            <div className="candidate-cell">
+                              {candidate.photoUrl && (
+                                <img src={candidate.photoUrl} alt={candidate.name} className="candidate-photo" />
+                              )}
+                              <span className="candidate-name">{candidate.name}</span>
+                            </div>
+                          </td>
+                          <td>{candidate.party}</td>
+                          <td className="votes-cell">{candidate.votes.toLocaleString()}</td>
+                          <td>
+                            <div className="percentage-bar">
+                              <div className="percentage-fill" style={{ width: `${candidate.percentage}%` }}></div>
+                              <span className="percentage-text">{candidate.percentage.toFixed(2)}%</span>
+                            </div>
+                          </td>
+                          <td className="diff-cell">
+                            {index === 0 ? '—' : `- ${diff.toLocaleString()}`}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* Demographics Tab */}
+        {activeTab === 'demographics' && demographics && (
+          <div className="demographics-section">
+            <div className="charts-grid">
+              <div className="chart-card">
+                <h3>Votos por Departamento</h3>
+                <div className="chart-wrapper">
+                  {deptData && <Bar data={deptData} options={barOptions as any} />}
+                </div>
+              </div>
+
+              <div className="chart-card">
+                <h3>Votos por Grupo de Edad</h3>
+                <div className="chart-wrapper">
+                  {ageData && <Pie data={ageData} options={chartOptions as any} />}
+                </div>
+              </div>
+            </div>
+
+            {/* Demographics Tables */}
+            <div className="demographics-tables">
+              <div className="demographics-table-card">
+                <h4>Por Departamento</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Departamento</th>
+                      <th>Votos</th>
+                      <th>Porcentaje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {demographics.byDepartment.map((dept) => {
+                      const percentage = (dept.votes / totalVotes) * 100;
+                      return (
+                        <tr key={dept.department}>
+                          <td>{dept.department}</td>
+                          <td>{dept.votes.toLocaleString()}</td>
+                          <td>{percentage.toFixed(2)}%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="demographics-table-card">
+                <h4>Por Grupo de Edad</h4>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Grupo de Edad</th>
+                      <th>Votos</th>
+                      <th>Porcentaje</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {demographics.byAge.map((age) => {
+                      const percentage = (age.votes / totalVotes) * 100;
+                      return (
+                        <tr key={age.ageGroup}>
+                          <td>{age.ageGroup}</td>
+                          <td>{age.votes.toLocaleString()}</td>
+                          <td>{percentage.toFixed(2)}%</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
-

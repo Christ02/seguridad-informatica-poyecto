@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -38,7 +39,13 @@ export class UsersService {
     identificationNumber: string,
   ): Promise<User | null> {
     return this.usersRepository.findOne({
-      where: { identificationNumber, deletedAt: null as any },
+      where: { dpi: identificationNumber, deletedAt: null as any },
+    });
+  }
+
+  async findByDpi(dpi: string): Promise<User | null> {
+    return this.usersRepository.findOne({
+      where: { dpi, deletedAt: null as any },
     });
   }
 
@@ -66,6 +73,22 @@ export class UsersService {
       lastLoginAt: new Date(),
       lastLoginIp: ip,
     });
+  }
+
+  async updateProfile(
+    userId: string,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<User> {
+    await this.usersRepository.update(userId, updateProfileDto);
+    const updatedUser = await this.findOne(userId);
+    if (!updatedUser) {
+      throw new Error('Usuario no encontrado');
+    }
+    return updatedUser;
+  }
+
+  async updatePassword(userId: string, hashedPassword: string): Promise<void> {
+    await this.usersRepository.update(userId, { password: hashedPassword });
   }
 }
 

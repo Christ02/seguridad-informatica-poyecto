@@ -3,7 +3,8 @@
  * Contenedor para gestionar múltiples notificaciones toast
  */
 
-import { Toast, ToastProps } from './Toast';
+import { Toast } from './Toast';
+import type { ToastProps } from './Toast';
 import './ToastContainer.css';
 
 interface ToastContainerProps {
@@ -22,7 +23,7 @@ export function ToastContainer({ toasts, onClose }: ToastContainerProps) {
           id={toast.id}
           type={toast.type}
           message={toast.message}
-          duration={toast.duration}
+          {...(toast.duration !== undefined && { duration: toast.duration })}
           onClose={onClose}
         />
       ))}

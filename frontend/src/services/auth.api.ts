@@ -21,8 +21,14 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   email: string;
-  identificationNumber: string;
-  fullName: string;
+  dpi: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  phoneNumber: string;
+  department?: string;
+  municipality?: string;
+  address?: string;
   password: string;
 }
 
@@ -43,7 +49,9 @@ export interface RegisterResponse {
   user: {
     id: string;
     email: string;
-    fullName: string;
+    firstName: string;
+    lastName: string;
+    dpi: string;
   };
 }
 
@@ -82,7 +90,7 @@ export const authApi = {
   },
 
   getProfile: async (): Promise<LoginResponse['user']> => {
-    const response = await apiClient.post<LoginResponse['user']>('/auth/me');
+    const response = await apiClient.get<LoginResponse['user']>('/auth/me');
     return response.data;
   },
 };

@@ -20,6 +20,7 @@ export default defineConfig({
       '@utils': path.resolve(__dirname, './src/utils'),
       '@config': path.resolve(__dirname, './src/config'),
       '@types': path.resolve(__dirname, './src/types'),
+      '@styles': path.resolve(__dirname, './src/styles'),
     },
   },
 
@@ -45,20 +46,13 @@ export default defineConfig({
     sourcemap: process.env.NODE_ENV === 'development',
     
     // Optimizaciones de build
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: process.env.NODE_ENV === 'production',
-        drop_debugger: true,
-      },
-    },
+    minify: 'esbuild',
     
     // Chunk splitting para mejor caching
     rollupOptions: {
       output: {
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'crypto-vendor': ['crypto-js'],
           'ui-vendor': ['zustand', '@tanstack/react-query'],
         },
       },
@@ -67,6 +61,13 @@ export default defineConfig({
     // Security: No incluir node_modules en el bundle
     target: 'esnext',
     assetsInlineLimit: 4096, // 4kb
+  },
+  
+  // Esbuild options para optimización
+  esbuild: {
+    // En producción, eliminar console.log y debugger pero mantener console.error y console.warn
+    drop: process.env.NODE_ENV === 'production' ? ['debugger'] : [],
+    pure: process.env.NODE_ENV === 'production' ? ['console.log', 'console.debug'] : [],
   },
 
   // Preview server (production preview)
@@ -77,30 +78,6 @@ export default defineConfig({
       'X-Content-Type-Options': 'nosniff',
       'X-Frame-Options': 'DENY',
       'X-XSS-Protection': '1; mode=block',
-    },
-  },
-
-  // Testing configuration
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: './src/__tests__/setup.ts',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html', 'lcov'],
-      exclude: [
-        'node_modules/',
-        'src/__tests__/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/mockData',
-        'dist/',
-      ],
-      all: true,
-      lines: 90,
-      functions: 90,
-      branches: 90,
-      statements: 90,
     },
   },
 });

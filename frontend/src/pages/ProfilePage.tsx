@@ -1,44 +1,174 @@
 /**
- * ProfilePage Component
- * Página de perfil de usuario con configuración de seguridad
+ * ProfilePage Component  
+ * Página de perfil de usuario con configuración de seguridad - Conectado al backend
  */
 
-import { useState } from 'react';
-import { useAuth } from '@features/auth/hooks/useAuth';
+import { useState, useEffect } from 'react';
 import { Sidebar } from '@components/Sidebar';
+import { useToast } from '@hooks/useToast';
+import { usersApi } from '@services/users.api';
+import type { UserProfile, UpdateProfileData, ChangePasswordData, UserActivity } from '@services/users.api';
 import './ProfilePage.css';
 
 export function ProfilePage() {
-  const { user } = useAuth();
+  const { showToast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
   const [showMFASetup, setShowMFASetup] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [activityLog, setActivityLog] = useState<UserActivity[]>([]);
+
   const [formData, setFormData] = useState({
-    email: user?.email || '',
-    phone: '+57 300 123 4567',
-    address: 'Calle 123 #45-67, Bogotá',
+    email: '',
+    phoneNumber: '',
+    address: '',
   });
 
-  const devices = [
-    { id: '1', name: 'MacBook Pro', lastActive: 'Activo ahora', location: 'Bogotá, Colombia' },
-    { id: '2', name: 'iPhone 13', lastActive: 'Hace 2 horas', location: 'Bogotá, Colombia' },
-    { id: '3', name: 'Chrome en Windows', lastActive: 'Hace 5 días', location: 'Medellín, Colombia' },
-  ];
+  const [passwordData, setPasswordData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  });
 
-  const activityLog = [
-    { id: '1', action: 'Inicio de sesión', date: '2025-11-11 14:30', ip: '192.168.1.1' },
-    { id: '2', action: 'Voto emitido', date: '2025-11-10 09:15', ip: '192.168.1.1' },
-    { id: '3', action: 'Cambio de contraseña', date: '2025-11-05 16:45', ip: '192.168.1.1' },
-    { id: '4', action: 'Configuración MFA', date: '2025-11-01 10:20', ip: '192.168.1.1' },
-  ];
+  useEffect(() => {
+    fetchProfile();
+    fetchActivity();
+  }, []);
 
-  const handleSave = () => {
-    console.log('Guardando cambios:', formData);
-    setIsEditing(false);
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    try {
+      const { profile: fetchedProfile } = await usersApi.getProfile();
+      setProfile(fetchedProfile);
+      setFormData({
+        email: fetchedProfile.email,
+        phoneNumber: fetchedProfile.phoneNumber,
+        address: fetchedProfile.address || '',
+      });
+    } catch (error: any) {
+      console.error('Error al cargar perfil:', error);
+      showToast('error', error.response?.data?.message || 'Error al cargar el perfil');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleRevokeDevice = (deviceId: string) => {
-    console.log('Revocando dispositivo:', deviceId);
+  const fetchActivity = async () => {
+    try {
+      const { activities } = await usersApi.getActivity();
+      setActivityLog(activities);
+    } catch (error) {
+      console.error('Error al cargar actividad:', error);
+    }
   };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const updateData: UpdateProfileData = {};
+      
+      if (formData.email !== profile?.email) updateData.email = formData.email;
+      if (formData.phoneNumber !== profile?.phoneNumber) updateData.phoneNumber = formData.phoneNumber;
+      if (formData.address !== profile?.address) updateData.address = formData.address;
+
+      if (Object.keys(updateData).length === 0) {
+        showToast('info', 'No hay cambios para guardar');
+        setIsEditing(false);
+        return;
+      }
+
+      const { profile: updatedProfile } = await usersApi.updateProfile(updateData);
+      setProfile(updatedProfile);
+      setFormData({
+        email: updatedProfile.email,
+        phoneNumber: updatedProfile.phoneNumber,
+        address: updatedProfile.address || '',
+      });
+      showToast('success', 'Perfil actualizado exitosamente');
+      setIsEditing(false);
+      fetchActivity(); // Recargar actividad
+    } catch (error: any) {
+      console.error('Error al actualizar perfil:', error);
+      showToast('error', error.response?.data?.message || 'Error al actualizar el perfil');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+      showToast('error', 'Todos los campos son requeridos');
+      return;
+    }
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      showToast('error', 'Las contraseñas no coinciden');
+      return;
+    }
+
+    if (passwordData.newPassword.length < 8) {
+      showToast('error', 'La contraseña debe tener al menos 8 caracteres');
+      return;
+    }
+
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(passwordData.newPassword)) {
+      showToast('error', 'La contraseña debe contener mayúsculas, minúsculas, números y caracteres especiales');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const changeData: ChangePasswordData = {
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      };
+      await usersApi.changePassword(changeData);
+      showToast('success', 'Contraseña actualizada exitosamente');
+      setShowPasswordModal(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      fetchActivity(); // Recargar actividad
+    } catch (error: any) {
+      console.error('Error al cambiar contraseña:', error);
+      showToast('error', error.response?.data?.message || 'Error al cambiar la contraseña');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="profile-page-container">
+        <Sidebar />
+        <div className="profile-page-wrapper">
+          <main className="profile-main">
+            <div className="loading-spinner"></div>
+            <p>Cargando perfil...</p>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="profile-page-container">
+        <Sidebar />
+        <div className="profile-page-wrapper">
+          <main className="profile-main">
+            <div className="error-container">
+              <p>Error al cargar el perfil</p>
+              <button className="btn-primary" onClick={fetchProfile}>
+                Reintentar
+              </button>
+            </div>
+          </main>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="profile-page-container">
@@ -51,6 +181,15 @@ export function ProfilePage() {
         </header>
 
         <main className="profile-main">
+          {/* Info Box */}
+          <div className="page-info-box">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4" />
+              <path d="M12 8h.01" />
+            </svg>
+            <p>Tu información personal está protegida con cifrado de extremo a extremo</p>
+          </div>
           {/* Profile Card */}
           <div className="profile-card">
             <div className="profile-avatar-section">
@@ -61,18 +200,64 @@ export function ProfilePage() {
                 </svg>
               </div>
               <div className="profile-avatar-info">
-                <h2>Ciudadano Votante</h2>
-                <span className="profile-id">ID: 1234567890</span>
-                <span className="profile-badge">Cuenta Verificada</span>
+                <h2>{profile.fullName}</h2>
+                <span className="profile-id">DPI: {profile.dpi}</span>
+                <span className={`profile-badge ${profile.isVerified ? 'verified' : 'unverified'}`}>
+                  {profile.isVerified ? 'Cuenta Verificada' : 'No Verificada'}
+                </span>
               </div>
             </div>
 
             <div className="profile-form">
               <div className="form-section">
                 <h3>Información Personal</h3>
+                <p className="info-note">Los campos DPI, nombres, apellidos, fecha de nacimiento, departamento y municipio no son editables.</p>
+                
                 <div className="form-grid">
+                  {/* Campos NO editables */}
                   <div className="form-field">
-                    <label>Correo Electrónico</label>
+                    <label>Nombres</label>
+                    <input type="text" value={profile.firstName} disabled className="disabled-field" />
+                  </div>
+                  <div className="form-field">
+                    <label>Apellidos</label>
+                    <input type="text" value={profile.lastName} disabled className="disabled-field" />
+                  </div>
+                  <div className="form-field">
+                    <label>DPI</label>
+                    <input type="text" value={profile.dpi} disabled className="disabled-field" />
+                  </div>
+                  <div className="form-field">
+                    <label>Fecha de Nacimiento</label>
+                    <input 
+                      type="text" 
+                      value={new Date(profile.dateOfBirth).toLocaleDateString('es-GT')} 
+                      disabled 
+                      className="disabled-field" 
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label>Departamento</label>
+                    <input 
+                      type="text" 
+                      value={profile.department || 'No especificado'} 
+                      disabled 
+                      className="disabled-field" 
+                    />
+                  </div>
+                  <div className="form-field">
+                    <label>Municipio</label>
+                    <input 
+                      type="text" 
+                      value={profile.municipality || 'No especificado'} 
+                      disabled 
+                      className="disabled-field" 
+                    />
+                  </div>
+
+                  {/* Campos EDITABLES */}
+                  <div className="form-field">
+                    <label>Correo Electrónico *</label>
                     <input
                       type="email"
                       value={formData.email}
@@ -81,21 +266,24 @@ export function ProfilePage() {
                     />
                   </div>
                   <div className="form-field">
-                    <label>Teléfono</label>
+                    <label>Teléfono *</label>
                     <input
                       type="tel"
-                      value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      value={formData.phoneNumber}
+                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                       disabled={!isEditing}
+                      maxLength={8}
+                      placeholder="12345678"
                     />
                   </div>
                   <div className="form-field full-width">
-                    <label>Dirección</label>
-                    <input
-                      type="text"
+                    <label>Dirección *</label>
+                    <textarea
                       value={formData.address}
                       onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                       disabled={!isEditing}
+                      rows={2}
+                      placeholder="Ingresa tu dirección completa"
                     />
                   </div>
                 </div>
@@ -104,11 +292,22 @@ export function ProfilePage() {
               <div className="form-actions">
                 {isEditing ? (
                   <>
-                    <button className="btn-cancel" onClick={() => setIsEditing(false)}>
+                    <button 
+                      className="btn-cancel" 
+                      onClick={() => { 
+                        setIsEditing(false); 
+                        setFormData({
+                          email: profile.email,
+                          phoneNumber: profile.phoneNumber,
+                          address: profile.address || '',
+                        });
+                      }} 
+                      disabled={isSaving}
+                    >
                       Cancelar
                     </button>
-                    <button className="btn-save" onClick={handleSave}>
-                      Guardar Cambios
+                    <button className="btn-save" onClick={handleSave} disabled={isSaving}>
+                      {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                     </button>
                   </>
                 ) : (
@@ -135,7 +334,9 @@ export function ProfilePage() {
                   <h3>Cambiar Contraseña</h3>
                   <p>Actualiza tu contraseña regularmente para mayor seguridad</p>
                 </div>
-                <button className="btn-security-action">Cambiar</button>
+                <button className="btn-security-action" onClick={() => setShowPasswordModal(true)}>
+                  Cambiar
+                </button>
               </div>
 
               <div className="security-card">
@@ -146,10 +347,10 @@ export function ProfilePage() {
                 </div>
                 <div className="security-card-content">
                   <h3>Autenticación de Dos Factores</h3>
-                  <p>Protege tu cuenta con un segundo factor de autenticación</p>
+                  <p>{profile.mfaEnabled ? 'MFA está activado' : 'Protege tu cuenta con un segundo factor'}</p>
                 </div>
                 <button className="btn-security-action" onClick={() => setShowMFASetup(!showMFASetup)}>
-                  {showMFASetup ? 'Cancelar' : 'Configurar'}
+                  {profile.mfaEnabled ? 'Desactivar' : 'Activar'}
                 </button>
               </div>
 
@@ -160,36 +361,17 @@ export function ProfilePage() {
                   </svg>
                 </div>
                 <div className="security-card-content">
-                  <h3>Preferencias de Notificaciones</h3>
-                  <p>Configura cómo y cuándo recibes notificaciones</p>
+                  <h3>Última sesión</h3>
+                  <p>
+                    {profile.lastLoginAt
+                      ? new Date(profile.lastLoginAt).toLocaleString('es-GT')
+                      : 'No disponible'}
+                  </p>
                 </div>
-                <button className="btn-security-action">Gestionar</button>
+                <button className="btn-security-action" onClick={fetchActivity}>
+                  Ver Actividad
+                </button>
               </div>
-            </div>
-          </div>
-
-          {/* Devices */}
-          <div className="devices-section">
-            <h2>Dispositivos Conectados</h2>
-            <div className="devices-list">
-              {devices.map((device) => (
-                <div key={device.id} className="device-item">
-                  <div className="device-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
-                      <line x1="8" y1="21" x2="16" y2="21" />
-                      <line x1="12" y1="17" x2="12" y2="21" />
-                    </svg>
-                  </div>
-                  <div className="device-info">
-                    <h4>{device.name}</h4>
-                    <p>{device.lastActive} • {device.location}</p>
-                  </div>
-                  <button className="btn-revoke" onClick={() => handleRevokeDevice(device.id)}>
-                    Revocar
-                  </button>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -197,20 +379,73 @@ export function ProfilePage() {
           <div className="activity-section">
             <h2>Actividad Reciente</h2>
             <div className="activity-list">
-              {activityLog.map((activity) => (
-                <div key={activity.id} className="activity-item">
-                  <div className="activity-dot" />
-                  <div className="activity-info">
-                    <h4>{activity.action}</h4>
-                    <p>{activity.date} • IP: {activity.ip}</p>
-                  </div>
+              {activityLog.length === 0 ? (
+                <div className="no-activity">
+                  <p>No hay actividad reciente</p>
                 </div>
-              ))}
+              ) : (
+                activityLog.map((activity) => (
+                  <div key={activity.id} className="activity-item">
+                    <div className="activity-dot" />
+                    <div className="activity-info">
+                      <h4>{activity.action}</h4>
+                      <p>{new Date(activity.date).toLocaleString('es-GT')}</p>
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </main>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div className="modal-overlay" onClick={() => !isSaving && setShowPasswordModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Cambiar Contraseña</h3>
+            <div className="form-group">
+              <label>Contraseña Actual</label>
+              <input
+                type="password"
+                value={passwordData.currentPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                disabled={isSaving}
+                placeholder="Ingresa tu contraseña actual"
+              />
+            </div>
+            <div className="form-group">
+              <label>Nueva Contraseña</label>
+              <input
+                type="password"
+                value={passwordData.newPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                disabled={isSaving}
+                placeholder="Mínimo 8 caracteres"
+              />
+              <small>Debe contener mayúsculas, minúsculas, números y caracteres especiales</small>
+            </div>
+            <div className="form-group">
+              <label>Confirmar Nueva Contraseña</label>
+              <input
+                type="password"
+                value={passwordData.confirmPassword}
+                onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
+                disabled={isSaving}
+                placeholder="Repite tu nueva contraseña"
+              />
+            </div>
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowPasswordModal(false)} disabled={isSaving}>
+                Cancelar
+              </button>
+              <button className="btn-save" onClick={handlePasswordChange} disabled={isSaving}>
+                {isSaving ? 'Cambiando...' : 'Cambiar Contraseña'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-

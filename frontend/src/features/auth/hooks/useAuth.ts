@@ -5,8 +5,11 @@
 
 import { useState, useCallback } from 'react';
 import { useAuthStore } from '../store/authStore';
-import { authApi, LoginCredentials } from '@services/auth.api';
-import { User } from '@/types';
+import { authApi } from '@services/auth.api';
+import type { LoginCredentials } from '@services/auth.api';
+import type { User } from '@/types';
+import { apiService } from '@services/api.service';
+import { logger } from '@utils/logger';
 
 export function useAuth() {
   const { user, setUser, clearUser, isAuthenticated } = useAuthStore();
@@ -28,7 +31,7 @@ export function useAuth() {
         const response = await authApi.login(credentials);
 
         if (response.user && response.accessToken) {
-          setUser(response.user as User);
+          setUser(response.user as User, response.accessToken, response.refreshToken);
           return { 
             success: true, 
             user: response.user as User,
@@ -53,8 +56,9 @@ export function useAuth() {
     setIsLoading(true);
     try {
       await apiService.post('/auth/logout');
+      logger.info('User logged out');
     } catch (err) {
-      console.error('Logout error:', err);
+      logger.error('Logout error', err);
     } finally {
       clearUser();
       setIsLoading(false);
@@ -88,7 +92,6 @@ export function useAuth() {
     login,
     logout,
     register,
-    checkAuthStatus,
   };
 }
 

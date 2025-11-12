@@ -6,6 +6,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ElectionsModule } from './modules/elections/elections.module';
+import { CandidatesModule } from './modules/candidates/candidates.module';
+import { VotesModule } from './modules/votes/votes.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AdminModule } from './modules/admin/admin.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import mongodbConfig from './config/mongodb.config';
@@ -37,6 +42,11 @@ import mongodbConfig from './config/mongodb.config';
     // Feature Modules
     UsersModule,
     AuthModule,
+    ElectionsModule,
+    CandidatesModule,
+    VotesModule,
+    AuditModule,
+    AdminModule,
   ],
   controllers: [AppController],
   providers: [AppService],
