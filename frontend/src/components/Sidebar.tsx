@@ -13,11 +13,11 @@ export function Sidebar() {
         <div className="sidebar-logo">
           <div className="logo-circle">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path
-                d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z"
+            <path
+              d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z"
                 fill="currentColor"
-              />
-            </svg>
+            />
+          </svg>
           </div>
           <div className="sidebar-brand">
             <h2>Portal de Votación</h2>

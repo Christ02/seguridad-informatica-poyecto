@@ -95,33 +95,33 @@ export function LoginForm() {
         {/* Logo Superior */}
         <div className="portal-brand">
           <div className="portal-brand-content">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="#2563eb">
-              <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
-            </svg>
-            <h1>Portal de Votación Ciudadana</h1>
-          </div>
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="#2563eb">
+            <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" />
+          </svg>
+          <h1>Portal de Votación Ciudadana</h1>
+        </div>
         </div>
 
-        <div className="login-form-card">
+      <div className="login-form-card">
           {/* Título Principal dentro del card */}
-          <div className="card-header">
+        <div className="card-header">
             <h2>Sistema Electoral Digital</h2>
-          </div>
+        </div>
 
         {!requiresMFA ? (
           <form onSubmit={handleSubmit} className="login-form">
             <div className="form-group">
               <label htmlFor="email">Correo electrónico</label>
-              <input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                <input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                 placeholder="Ingresa tu correo electrónico"
-                required
-                autoComplete="email"
-                disabled={isLoading}
-              />
+                  required
+                  autoComplete="email"
+                  disabled={isLoading}
+                />
               {errors.email && <span className="error-message">{errors.email}</span>}
             </div>
 
@@ -167,8 +167,8 @@ export function LoginForm() {
                 <input type="checkbox" id="remember" />
                 <label htmlFor="remember">Recordarme</label>
               </div>
-              <div className="forgot-password">
-                <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
+            <div className="forgot-password">
+              <a href="/forgot-password">¿Olvidaste tu contraseña?</a>
               </div>
             </div>
 
@@ -261,18 +261,18 @@ export function LoginForm() {
           </form>
         )}
 
-          <footer className="card-footer">
-            <div className="register-link">
-              ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
-            </div>
-            <div className="footer-links">
-              <a href="/privacy">Política de Privacidad</a>
-              <span className="separator">•</span>
-              <a href="/terms">Términos de Uso</a>
-              <span className="separator">•</span>
-              <a href="/support">Soporte</a>
-            </div>
-          </footer>
+        <footer className="card-footer">
+          <div className="register-link">
+            ¿No tienes cuenta? <a href="/register">Regístrate aquí</a>
+          </div>
+          <div className="footer-links">
+            <a href="/privacy">Política de Privacidad</a>
+            <span className="separator">•</span>
+            <a href="/terms">Términos de Uso</a>
+            <span className="separator">•</span>
+            <a href="/support">Soporte</a>
+          </div>
+        </footer>
         </div>
       </div>
     </div>

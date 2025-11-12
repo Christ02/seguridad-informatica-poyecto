@@ -120,8 +120,8 @@ export function ManageVoters() {
   const filteredVoters = voters.filter((voter) => {
     // Filtro de búsqueda
     const matchesSearch = 
-      voter.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      voter.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    voter.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    voter.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       voter.dpi.includes(searchQuery);
     
     // Filtro de rol
@@ -196,19 +196,19 @@ export function ManageVoters() {
           <div className="voters-filters">
             <div className="filter-group" style={{ flex: 1 }}>
               <label htmlFor="search">Buscar</label>
-              <div className="search-box">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <circle cx="11" cy="11" r="8" />
-                  <path d="m21 21-4.35-4.35" />
-                </svg>
-                <input
+        <div className="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
                   id="search"
-                  type="text"
-                  placeholder="Buscar por nombre, DPI o email..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
+            type="text"
+            placeholder="Buscar por nombre, DPI o email..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
             </div>
             
             <div className="filter-group">
@@ -253,28 +253,28 @@ export function ManageVoters() {
                   Imprimir
                 </button>
               </div>
-            </div>
+        </div>
 
-            <div className="table-container">
-              <table className="admin-table">
-                <thead>
-                  <tr>
+          <div className="table-container">
+            <table className="admin-table">
+              <thead>
+                <tr>
                     <th>USUARIO</th>
-                    <th>DPI</th>
+                  <th>DPI</th>
                     <th>ROL</th>
                     <th>ESTADO</th>
-                    <th>ÚLTIMO ACCESO</th>
-                    <th>ACCIONES</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredVoters.length > 0 ? (
-                    filteredVoters.map((voter) => {
-                      const identityBadge = getIdentityStatusBadge(voter.isVerified);
-                      const accountBadge = getAccountStatusBadge(voter.isActive);
-                      
-                      return (
-                        <tr key={voter.id}>
+                  <th>ÚLTIMO ACCESO</th>
+                  <th>ACCIONES</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredVoters.length > 0 ? (
+                  filteredVoters.map((voter) => {
+                    const identityBadge = getIdentityStatusBadge(voter.isVerified);
+                    const accountBadge = getAccountStatusBadge(voter.isActive);
+                    
+                    return (
+                      <tr key={voter.id}>
                           <td>
                             <div className="user-info-expanded">
                               <div className="user-avatar-large">
@@ -291,16 +291,16 @@ export function ManageVoters() {
                               {voter.dpi}
                             </span>
                           </td>
-                          <td>
+                        <td>
                             <span className={`badge ${
                               voter.role === 'ADMIN' ? 'badge-warning' :
                               voter.role === 'AUDITOR' ? 'badge-info' :
                               'badge-default'
                             }`}>
                               {voter.role}
-                            </span>
-                          </td>
-                          <td>
+                          </span>
+                        </td>
+                        <td>
                             <div className="user-status-cell">
                               <span className={`badge ${identityBadge.class}`}>
                                 {voter.isVerified ? (
@@ -316,38 +316,38 @@ export function ManageVoters() {
                                 )}
                                 {identityBadge.text}
                               </span>
-                              <span className={`badge ${accountBadge.class}`}>
-                                {accountBadge.text}
+                          <span className={`badge ${accountBadge.class}`}>
+                            {accountBadge.text}
                               </span>
                             </div>
                           </td>
                           <td>
                             <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
                               {formatDate(voter.lastLoginAt)}
-                            </span>
-                          </td>
-                          <td>
-                            <div className="action-buttons">
+                          </span>
+                        </td>
+                        <td>
+                          <div className="action-buttons">
                               <button 
                                 className="btn-action btn-edit" 
                                 title="Ver detalles"
                                 onClick={() => handleViewDetails(voter.id)}
                               >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-                                  <circle cx="12" cy="12" r="3" />
-                                </svg>
-                              </button>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                              </svg>
+                            </button>
                               <button 
                                 className="btn-action" 
                                 title="Editar usuario"
                                 onClick={() => handleEditUser(voter)}
                               >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
-                              </button>
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                              </svg>
+                            </button>
                               {voter.isActive ? (
                                 <button 
                                   className="btn-action btn-delete" 
@@ -371,13 +371,13 @@ export function ManageVoters() {
                                   </svg>
                                 </button>
                               )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
                       <td colSpan={6}>
                         <div className="empty-state-custom">
                           <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -397,11 +397,11 @@ export function ManageVoters() {
                               : 'Los usuarios aparecerán aquí cuando se registren'}
                           </p>
                         </div>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
             </div>
           </div>
 
