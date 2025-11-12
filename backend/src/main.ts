@@ -49,11 +49,13 @@ async function bootstrap() {
     maxAge: 86400, // 24 horas
   });
 
-  // Security headers (DESPUÉS de CORS)
+  // Security headers (DESPUÉS de CORS) - Desactivar headers que interfieren con CORS
   app.use(
     helmet({
-      crossOriginResourcePolicy: { policy: 'cross-origin' },
-      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+      crossOriginResourcePolicy: false,
+      crossOriginOpenerPolicy: false,
+      crossOriginEmbedderPolicy: false,
+      referrerPolicy: false, // Desactivar referrer-policy que causa problemas con CORS
     })
   );
 
