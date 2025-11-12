@@ -1,0 +1,14 @@
+{
+  "setup": [
+    "cd backend"
+  ],
+  "build": [
+    "npm ci",
+    "npm run build"
+  ],
+  "start": "node dist/main",
+  "staticAssets": {
+    "output": "backend/dist"
+  }
+}
+
