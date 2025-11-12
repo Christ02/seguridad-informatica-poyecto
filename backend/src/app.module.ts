@@ -11,6 +11,7 @@ import { CandidatesModule } from './modules/candidates/candidates.module';
 import { VotesModule } from './modules/votes/votes.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { SeedModule } from './modules/seed/seed.module';
 import databaseConfig from './config/database.config';
 import redisConfig from './config/redis.config';
 import mongodbConfig from './config/mongodb.config';
@@ -47,6 +48,7 @@ import mongodbConfig from './config/mongodb.config';
     VotesModule,
     AuditModule,
     AdminModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
