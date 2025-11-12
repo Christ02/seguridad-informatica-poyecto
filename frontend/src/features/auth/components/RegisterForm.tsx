@@ -179,12 +179,15 @@ export function RegisterForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Register form submitted', { currentStep, formData });
 
     if (!validateStep(currentStep)) {
+      console.log('❌ Validation failed for step', currentStep);
       return;
     }
 
     setIsLoading(true);
+    console.log('✅ Starting registration process...');
 
     try {
       // Sanitizar datos
@@ -227,11 +230,20 @@ export function RegisterForm() {
       setTimeout(() => navigate('/login'), 2000);
     } catch (error: unknown) {
       logger.error('Error al registrarse', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Error al registrarse. Por favor intenta nuevamente';
+      let errorMessage = 'Error al registrarse. Por favor intenta nuevamente';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string | string[] } } };
+        if (axiosError.response?.data?.message) {
+          const msg = axiosError.response.data.message;
+          errorMessage = Array.isArray(msg) ? msg.join(', ') : msg;
+        }
+      }
+      
       showToast('error', errorMessage);
+      console.error('Registration error details:', error);
     } finally {
       setIsLoading(false);
     }
