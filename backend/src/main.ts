@@ -6,10 +6,7 @@ import helmet from 'helmet';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security headers
-  app.use(helmet());
-
-  // CORS - Configuración mejorada para producción
+  // CORS - Configuración mejorada para producción (ANTES de helmet)
   app.enableCors({
     origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
       const allowedOrigins: (string | RegExp)[] = [
@@ -51,6 +48,14 @@ async function bootstrap() {
     exposedHeaders: ['Authorization', 'X-CSRF-Token'],
     maxAge: 86400, // 24 horas
   });
+
+  // Security headers (DESPUÉS de CORS)
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' },
+    })
+  );
 
   // Global prefix
   app.setGlobalPrefix(process.env.API_PREFIX || 'api/v1');
