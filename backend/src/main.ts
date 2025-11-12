@@ -11,8 +11,8 @@ async function bootstrap() {
 
   // CORS - Configuración mejorada para producción
   app.enableCors({
-    origin: (origin, callback) => {
-      const allowedOrigins = [
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      const allowedOrigins: (string | RegExp)[] = [
         'http://localhost:3000',
         'https://frontend-delta-six-81.vercel.app',
         /^https:\/\/frontend-.*\.vercel\.app$/, // Permite todos los deployments de Vercel
