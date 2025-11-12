@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { UsersService } from './modules/users/users.service';
-import { UserRole, UserStatus } from './modules/users/entities/user.entity';
+import { UserRole } from './common/enums/user-role.enum';
 import * as bcrypt from 'bcrypt';
 
 async function bootstrap() {
@@ -30,16 +30,17 @@ async function bootstrap() {
     const adminUser = await usersService.create({
       email: 'barriosc31@gmail.com',
       password: hashedPassword,
-      fullName: 'Christian Barrios',
-      identificationType: 'DPI',
-      identificationNumber: 'ADMIN001',
+      firstName: 'Christian',
+      lastName: 'Barrios',
+      dpi: '3001234567890', // DPI de 13 dígitos
       dateOfBirth: new Date('1990-01-01'),
-      phone: '+502 0000-0000',
-      address: 'Guatemala',
+      phoneNumber: '12345678', // 8 dígitos
       department: 'Guatemala',
       municipality: 'Guatemala',
+      address: 'Guatemala City',
       role: UserRole.ADMIN,
-      status: UserStatus.ACTIVE,
+      isActive: true,
+      isVerified: true,
     });
 
     console.log('✅ Usuario administrador creado exitosamente!');
@@ -49,8 +50,9 @@ async function bootstrap() {
     console.log('📧 Email:', adminUser.email);
     console.log('👤 Nombre:', adminUser.fullName);
     console.log('🔑 Rol:', adminUser.role);
-    console.log('✅ Estado:', adminUser.status);
+    console.log('✅ Estado:', adminUser.isActive ? 'Activo' : 'Inactivo');
     console.log('🆔 ID:', adminUser.id);
+    console.log('📱 DPI:', adminUser.dpi);
     console.log('');
     console.log('🔐 Credenciales de acceso:');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -62,6 +64,9 @@ async function bootstrap() {
 
   } catch (error) {
     console.error('❌ Error al crear usuario admin:', error.message);
+    if (error.detail) {
+      console.error('Detalles:', error.detail);
+    }
   } finally {
     await app.close();
   }
