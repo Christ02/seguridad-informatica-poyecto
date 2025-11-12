@@ -106,7 +106,6 @@ export function CreateElection() {
         description: formData.description.trim(),
         startDate: new Date(formData.startDate).toISOString(),
         endDate: new Date(formData.endDate).toISOString(),
-        status: 'DRAFT',
         allowMultipleVotes: formData.votingType === 'multiple',
       };
 
@@ -126,10 +125,21 @@ export function CreateElection() {
       await loadElections();
     } catch (error: unknown) {
       logger.error('Error saving election', error);
-      const errorMessage = editingElection 
+      let errorMessage = editingElection 
         ? 'Error al actualizar la elección'
         : 'Error al crear la elección';
+      
+      // Extraer mensaje de error específico del backend
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string | string[] } } };
+        if (axiosError.response?.data?.message) {
+          const msg = axiosError.response.data.message;
+          errorMessage = Array.isArray(msg) ? msg.join(', ') : msg;
+        }
+      }
+      
       showToast('error', errorMessage);
+      console.error('Election save error details:', error);
     } finally {
       setIsSubmitting(false);
     }
