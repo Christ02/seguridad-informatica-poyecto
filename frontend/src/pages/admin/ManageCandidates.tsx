@@ -44,7 +44,7 @@ export function ManageCandidates() {
     try {
       const data = await electionsApi.getAll();
       setElections(data);
-      if (data.length > 0 && !selectedElection) {
+      if (data.length > 0 && !selectedElection && data[0]) {
         setSelectedElection(data[0].id);
       }
       logger.info('Elections loaded', { count: data.length });
@@ -88,8 +88,8 @@ export function ManageCandidates() {
       await candidatesApi.create({
         name: newCandidate.name.trim(),
         description: newCandidate.description.trim(),
-        party: party || undefined,
-        photoUrl: photoUrl || undefined,
+        ...(party ? { party } : {}),
+        ...(photoUrl ? { photoUrl } : {}),
         electionId: selectedElection,
       });
 

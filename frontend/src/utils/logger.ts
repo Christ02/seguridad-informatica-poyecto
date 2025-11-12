@@ -28,7 +28,7 @@ class Logger {
       level,
       message,
       timestamp: new Date().toISOString(),
-      context: context || undefined,
+      ...(context ? { context } : {}),
     };
 
     // Guardar en historial (útil para debugging)

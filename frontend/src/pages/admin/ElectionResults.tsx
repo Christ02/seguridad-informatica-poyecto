@@ -39,7 +39,7 @@ export function ElectionResults() {
       const completed = data.find(e => e.status === 'COMPLETED' || e.status === 'CLOSED');
       if (completed) {
         setSelectedElectionId(completed.id);
-      } else if (data.length > 0) {
+      } else if (data.length > 0 && data[0]) {
         setSelectedElectionId(data[0].id);
       }
       
