@@ -3,7 +3,7 @@
  * Layout reutilizable para todas las páginas de admin
  */
 
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuthStore } from '@features/auth/store/authStore';
 import './AdminLayout.css';
@@ -16,7 +16,7 @@ interface AdminLayoutProps {
 }
 
 export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutProps) {
-  const { user, logout } = useAuthStore();
+  const { user, clearUser } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -25,7 +25,7 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
   };
 
   const handleLogout = () => {
-    logout();
+    clearUser();
     navigate('/login');
   };
 

@@ -82,11 +82,14 @@ export function ManageCandidates() {
     }
 
     try {
+      const party = newCandidate.party.trim();
+      const photoUrl = newCandidate.photoUrl.trim();
+      
       await candidatesApi.create({
         name: newCandidate.name.trim(),
         description: newCandidate.description.trim(),
-        party: newCandidate.party.trim() || undefined,
-        photoUrl: newCandidate.photoUrl.trim() || undefined,
+        party: party || undefined,
+        photoUrl: photoUrl || undefined,
         electionId: selectedElection,
       });
 

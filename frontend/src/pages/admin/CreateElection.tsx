@@ -6,7 +6,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AdminLayout } from '@components/AdminLayout';
-import { electionsApi, Election, UpdateElectionDto } from '@services/elections.api';
+import { electionsApi, type Election, type UpdateElectionDto } from '@services/elections.api';
 import { useToast } from '@hooks/useToast';
 import { logger } from '@utils/logger';
 import '@styles/admin-shared.css';

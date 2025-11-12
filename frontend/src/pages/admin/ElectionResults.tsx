@@ -64,7 +64,7 @@ export function ElectionResults() {
   };
 
   const selectedElection = elections.find(e => e.id === selectedElectionId);
-  const totalVotes = candidates.reduce((sum, c) => sum + c.voteCount, 0);
+  const totalVotes = candidates.reduce((sum, c) => sum + (c.voteCount || 0), 0);
 
   const handleExportPDF = () => {
     logger.info('Exporting results to PDF');
