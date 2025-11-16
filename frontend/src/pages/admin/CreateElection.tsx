@@ -187,6 +187,27 @@ export function CreateElection() {
     }
   };
 
+  const handleChangeStatus = async (electionId: string, newStatus: string, electionTitle: string) => {
+    try {
+      await electionsApi.updateStatus(electionId, newStatus);
+      showToast('success', `Estado de "${electionTitle}" cambiado a ${newStatus}`);
+      logger.info('Election status updated', { electionId, newStatus });
+      await loadElections();
+    } catch (error: unknown) {
+      logger.error('Error updating election status', error);
+      
+      let errorMessage = 'Error al cambiar el estado de la elección';
+      if (typeof error === 'object' && error !== null && 'response' in error) {
+        const axiosError = error as { response?: { data?: { message?: string } } };
+        if (axiosError.response?.data?.message) {
+          errorMessage = axiosError.response.data.message;
+        }
+      }
+      
+      showToast('error', errorMessage);
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     const badges: Record<string, { text: string; class: string }> = {
       ACTIVE: { text: 'Activa', class: 'status-active' },
@@ -439,10 +460,48 @@ export function CreateElection() {
                         <td>{formatDate(election.endDate)}</td>
                         <td>
                           <div className="action-buttons">
+                            {election.status === 'DRAFT' && (
+                              <button 
+                                className="btn-action btn-activate" 
+                                title="Activar elección"
+                                onClick={() => handleChangeStatus(election.id, 'ACTIVE', election.title)}
+                                style={{ backgroundColor: '#10b981', color: 'white' }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              </button>
+                            )}
+                            {election.status === 'ACTIVE' && (
+                              <button 
+                                className="btn-action btn-close" 
+                                title="Cerrar elección"
+                                onClick={() => handleChangeStatus(election.id, 'CLOSED', election.title)}
+                                style={{ backgroundColor: '#f59e0b', color: 'white' }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                                </svg>
+                              </button>
+                            )}
+                            {election.status === 'CLOSED' && (
+                              <button 
+                                className="btn-action btn-complete" 
+                                title="Completar elección"
+                                onClick={() => handleChangeStatus(election.id, 'COMPLETED', election.title)}
+                                style={{ backgroundColor: '#6366f1', color: 'white' }}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                                  <polyline points="22 4 12 14.01 9 11.01" />
+                                </svg>
+                              </button>
+                            )}
                             {election.status === 'COMPLETED' ? (
                               <button 
                                 className="btn-action btn-edit" 
-                                title="Ver detalles"
+                                title="Ver resultados"
                                 onClick={() => navigate(`/admin/results`)}
                               >
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
