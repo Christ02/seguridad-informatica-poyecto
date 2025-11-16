@@ -44,6 +44,11 @@ async function bootstrap() {
       'X-Request-Time',
       'X-Request-ID',
       'X-Body-Hash',
+      'Referrer-Policy',
+      'referrer-policy',
+      'sec-fetch-mode',
+      'sec-fetch-site',
+      'sec-fetch-dest',
     ],
     exposedHeaders: ['Authorization', 'X-CSRF-Token'],
     maxAge: 86400, // 24 horas
