@@ -6,20 +6,55 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Candidate } from './entities/candidate.entity';
+import { IsString, IsNotEmpty, IsOptional, IsUUID, IsBoolean, MaxLength } from 'class-validator';
 
 export class CreateCandidateDto {
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(255)
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
   description: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
   party?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
   photoUrl?: string;
+
+  @IsUUID()
+  @IsNotEmpty()
   electionId: string;
 }
 
 export class UpdateCandidateDto {
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
   name?: string;
+
+  @IsString()
+  @IsOptional()
   description?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
   party?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(500)
   photoUrl?: string;
+
+  @IsBoolean()
+  @IsOptional()
   isActive?: boolean;
 }
 
