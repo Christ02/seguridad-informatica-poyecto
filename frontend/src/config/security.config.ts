@@ -63,12 +63,13 @@ export const securityConfig = {
     },
   },
 
-  // Security Headers
+  // Security Headers (estos son configurados por el servidor en las respuestas, no por el cliente)
+  // NOTA: No se deben enviar como headers de request, el backend los configura en las responses
   headers: {
-    'X-Content-Type-Options': 'nosniff',
-    'X-Frame-Options': 'DENY',
-    'X-XSS-Protection': '1; mode=block',
-    'Referrer-Policy': 'strict-origin-when-cross-origin',
+    // 'X-Content-Type-Options': 'nosniff',
+    // 'X-Frame-Options': 'DENY',
+    // 'X-XSS-Protection': '1; mode=block',
+    // 'Referrer-Policy': 'strict-origin-when-cross-origin',
   },
 
   // Feature Flags
