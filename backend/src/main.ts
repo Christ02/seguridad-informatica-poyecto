@@ -49,6 +49,12 @@ async function bootstrap() {
       'sec-fetch-mode',
       'sec-fetch-site',
       'sec-fetch-dest',
+      'x-content-type-options',
+      'X-Content-Type-Options',
+      'x-frame-options',
+      'X-Frame-Options',
+      'x-xss-protection',
+      'X-XSS-Protection',
     ],
     exposedHeaders: ['Authorization', 'X-CSRF-Token'],
     maxAge: 86400, // 24 horas
