@@ -11,6 +11,7 @@ import { Dashboard } from './pages/Dashboard';
 import { VotingHistory } from './pages/VotingHistory';
 import { VotingPage } from './pages/VotingPage';
 import { ResultsPage } from './pages/ResultsPage';
+import { ResultsListPage } from './pages/ResultsListPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { HelpPage } from './pages/HelpPage';
@@ -99,6 +100,14 @@ function App() {
             element={
               <PrivateRoute allowedRoles={[UserRole.VOTER]}>
                 <VotingPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/results"
+            element={
+              <PrivateRoute allowedRoles={[UserRole.VOTER]}>
+                <ResultsListPage />
               </PrivateRoute>
             }
           />
