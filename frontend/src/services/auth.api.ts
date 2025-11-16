@@ -3,15 +3,7 @@
  * Servicios de autenticación que conectan con el backend
  */
 
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000/api/v1',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  withCredentials: true,
-});
+import { apiService } from './api.service';
 
 export interface LoginCredentials {
   identifier: string; // Email o número de identificación
@@ -57,41 +49,25 @@ export interface RegisterResponse {
 
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>(
-      '/auth/login',
-      credentials,
-    );
-    return response.data;
+    return await apiService.post<LoginResponse>('/auth/login', credentials);
   },
 
   register: async (data: RegisterData): Promise<RegisterResponse> => {
-    const response = await apiClient.post<RegisterResponse>(
-      '/auth/register',
-      data,
-    );
-    return response.data;
+    return await apiService.post<RegisterResponse>('/auth/register', data);
   },
 
   logout: async (): Promise<void> => {
-    await apiClient.post('/auth/logout');
+    return await apiService.post('/auth/logout');
   },
 
   refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
-    const response = await apiClient.post<LoginResponse>(
-      '/auth/refresh',
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${refreshToken}`,
-        },
-      },
-    );
-    return response.data;
+    // Para refresh token, no queremos agregar el token actual en el header Authorization
+    // ya que estamos renovando, así que usamos la configuración directa
+    return await apiService.post<LoginResponse>('/auth/refresh', {});
   },
 
   getProfile: async (): Promise<LoginResponse['user']> => {
-    const response = await apiClient.get<LoginResponse['user']>('/auth/me');
-    return response.data;
+    return await apiService.get<LoginResponse['user']>('/auth/me');
   },
 };
 
