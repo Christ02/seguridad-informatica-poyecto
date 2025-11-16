@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
@@ -38,6 +39,9 @@ import mongodbConfig from './config/mongodb.config';
         limit: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
       },
     ]),
+
+    // Task Scheduling (Cron Jobs)
+    ScheduleModule.forRoot(),
 
     // Feature Modules
     UsersModule,
