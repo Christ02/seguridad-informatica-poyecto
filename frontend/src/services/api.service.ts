@@ -24,7 +24,9 @@ class APIService {
       withCredentials: true, // Para enviar cookies (httpOnly)
       headers: {
         'Content-Type': 'application/json',
-        ...securityConfig.headers,
+        // NO agregar headers de seguridad aquí - estos son headers de RESPONSE, no de REQUEST
+        // Los headers de seguridad (X-Content-Type-Options, X-Frame-Options, etc.) 
+        // deben ser configurados por el servidor backend, no por el cliente
       },
     });
 
