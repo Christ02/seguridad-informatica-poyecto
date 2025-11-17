@@ -7,8 +7,8 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { Sidebar } from '@components/Sidebar';
 import { adminApi } from '@services/admin.api';
-import type { DetailedResults, Demographics } from '@services/admin.api';
-import { candidatesApi, type CandidateResult } from '@services/candidates.api';
+import type { DetailedResults, Demographics, CandidateResult } from '@services/admin.api';
+import { candidatesApi } from '@services/candidates.api';
 import { electionsApi } from '@services/elections.api';
 import { useAuthStore } from '@features/auth/store/authStore';
 import { UserRole } from '@/types';
@@ -77,6 +77,16 @@ export function ResultsPage() {
         
         const totalVotes = candidateResults.reduce((sum, c) => sum + c.votes, 0);
         
+        // Mapear resultados asegurando que party siempre tenga valor
+        const mappedCandidates: CandidateResult[] = candidateResults.map(c => ({
+          id: c.id,
+          name: c.name,
+          party: c.party || 'Independiente',
+          votes: c.votes,
+          percentage: c.percentage,
+          photoUrl: c.photoUrl || '',
+        }));
+        
         const resultsData: DetailedResults = {
           election: {
             id: election.id,
@@ -88,8 +98,8 @@ export function ResultsPage() {
           },
           results: {
             totalVotes,
-            candidates: candidateResults,
-            winner: candidateResults[0] || null,
+            candidates: mappedCandidates,
+            winner: mappedCandidates[0] || null,
           },
         };
         
