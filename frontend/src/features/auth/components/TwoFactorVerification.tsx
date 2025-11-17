@@ -3,10 +3,11 @@
  * Componente para ingresar y verificar código de 6 dígitos
  */
 
-import { useState, useRef, useEffect, FormEvent } from 'react';
+import { useState, useRef, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi } from '@services/auth.api';
 import { useAuthStore } from '@features/auth/store/authStore';
+import { UserRole } from '@/types';
 import './TwoFactorVerification.css';
 
 interface TwoFactorVerificationProps {
@@ -21,7 +22,7 @@ export function TwoFactorVerification({
   onCancel,
 }: TwoFactorVerificationProps) {
   const navigate = useNavigate();
-  const { setUser, setToken } = useAuthStore();
+  const { setUser } = useAuthStore();
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -86,9 +87,14 @@ export function TwoFactorVerification({
 
       const response = await authApi.verify2FA(userId, fullCode);
 
+      // Asegurar que el rol sea del tipo UserRole correcto
+      const userWithCorrectRole = {
+        ...response.user,
+        role: response.user.role as UserRole,
+      };
+
       // Guardar token y usuario
-      setToken(response.accessToken);
-      setUser(response.user);
+      setUser(userWithCorrectRole, response.accessToken, response.refreshToken);
 
       // Redirigir según el rol
       if (response.user.role === 'ADMIN' || response.user.role === 'SUPER_ADMIN') {

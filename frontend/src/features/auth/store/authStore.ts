@@ -14,6 +14,7 @@ interface AuthState {
   sessionExpiresAt: number | null;
   lastActivity: number;
   setUser: (user: User, accessToken: string, refreshToken: string) => void;
+  setToken: (accessToken: string) => void;
   clearUser: () => void;
   updateLastActivity: () => void;
   getAccessToken: () => string | null;
@@ -39,6 +40,17 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       accessToken,
       refreshToken,
       isAuthenticated: true,
+      sessionExpiresAt: expiresAt,
+      lastActivity: Date.now(),
+    });
+  },
+
+  setToken: (accessToken) => {
+    const expiresAt = Date.now() + 15 * 60 * 1000;
+    sessionStorage.setItem('accessToken', accessToken);
+    
+    set({
+      accessToken,
       sessionExpiresAt: expiresAt,
       lastActivity: Date.now(),
     });

@@ -30,7 +30,7 @@ export function useAuth() {
       try {
         const response = await authApi.login(credentials);
 
-        if (response.user && response.accessToken) {
+        if (response.user && response.accessToken && response.refreshToken) {
           setUser(response.user as User, response.accessToken, response.refreshToken);
           return { 
             success: true, 
