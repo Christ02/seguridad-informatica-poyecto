@@ -24,6 +24,22 @@ export class EmailService {
    */
   async send2FACode(email: string, code: string, isNewDevice: boolean) {
     try {
+      // En desarrollo sin SMTP configurado, solo loggear
+      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
+        this.logger.warn(`⚠️ MODO DESARROLLO - SMTP no configurado`);
+        this.logger.warn(`📧 Código 2FA para ${email}: ${code}`);
+        this.logger.warn(`🆕 Dispositivo nuevo: ${isNewDevice ? 'SÍ' : 'NO'}`);
+        this.logger.warn(`⏱️  Expira en: 10 minutos`);
+        console.log('\n==============================================');
+        console.log(`🔐 CÓDIGO DE VERIFICACIÓN 2FA`);
+        console.log(`==============================================`);
+        console.log(`Email: ${email}`);
+        console.log(`Código: ${code}`);
+        console.log(`Dispositivo nuevo: ${isNewDevice ? 'SÍ' : 'NO'}`);
+        console.log(`==============================================\n`);
+        return true;
+      }
+
       const subject = isNewDevice
         ? '🔐 Nuevo dispositivo detectado - Código de verificación'
         : '🔐 Código de verificación de dos factores';
@@ -159,7 +175,7 @@ export class EmailService {
     } catch (error) {
       this.logger.error(`❌ Error enviando código 2FA a ${email}:`, error);
       // En desarrollo, no fallar si no hay SMTP configurado
-      if (process.env.NODE_ENV === 'development') {
+      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
         this.logger.warn(`⚠️ Modo desarrollo: Código 2FA = ${code}`);
         return true;
       }
@@ -176,6 +192,12 @@ export class EmailService {
     userAgent: string,
   ) {
     try {
+      // En desarrollo sin SMTP, solo loggear
+      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
+        this.logger.log(`📧 Notificación de login (modo dev): ${email} desde ${ipAddress}`);
+        return;
+      }
+
       const html = `
         <!DOCTYPE html>
         <html>
