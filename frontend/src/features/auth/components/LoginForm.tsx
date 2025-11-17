@@ -58,18 +58,31 @@ export function LoginForm() {
     try {
       setIsLoading(true);
       
+      console.log('[LoginForm] Intentando login con:', { email: sanitizedEmail });
+      
       const response = await authApi.login({
         identifier: sanitizedEmail,
         password: sanitizedPassword,
       });
 
+      console.log('[LoginForm] Respuesta del servidor:', response);
+
       // Si requiere 2FA, mostrar componente de verificación
       if (response.requiresTwoFactor && response.userId && response.email) {
+        console.log('[LoginForm] ✅ 2FA requerido, mostrando componente');
         setTwoFactorData({ userId: response.userId, email: response.email });
         setShow2FA(true);
+      } else {
+        console.log('[LoginForm] ⚠️ Respuesta no requiere 2FA:', response);
+        setErrors({ general: 'Respuesta del servidor inesperada. Por favor intenta nuevamente.' });
       }
     } catch (err: any) {
-      console.error('Login error:', err);
+      console.error('[LoginForm] ❌ Error en login:', err);
+      console.error('[LoginForm] Error details:', {
+        message: err?.message,
+        response: err?.response?.data,
+        status: err?.response?.status
+      });
       setAttempts(attempts + 1);
       setErrors({
         general: err?.response?.data?.message || 'Credenciales inválidas. Verifica tu email y contraseña.',
