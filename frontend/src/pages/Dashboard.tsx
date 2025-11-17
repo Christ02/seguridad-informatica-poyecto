@@ -185,22 +185,22 @@ export function Dashboard() {
 
                           <div className="election-actions">
                             {election.hasVoted ? (
-                              <>
-                                <button className="btn-voted" disabled>
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <div className="voted-actions">
+                                <div className="voted-badge">
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <polyline points="20 6 9 17 4 12" />
                                   </svg>
                                   Ya has votado
-                                </button>
-                                <button className="btn-results" onClick={() => handleViewResults(election.id)}>
+                                </div>
+                                <button className="btn-view-results" onClick={() => handleViewResults(election.id)}>
                                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                                     <path d="M18 20V10" />
                                     <path d="M12 20V4" />
                                     <path d="M6 20v-6" />
                                   </svg>
-                                  Ver Resultados
+                                  Ver Resultados Parciales
                                 </button>
-                              </>
+                              </div>
                             ) : (
                               <button className="btn-vote" onClick={() => handleVote(election.id)}>
                                 Votar Ahora
