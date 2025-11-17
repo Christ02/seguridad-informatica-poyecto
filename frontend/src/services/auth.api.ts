@@ -25,6 +25,22 @@ export interface RegisterData {
 }
 
 export interface LoginResponse {
+  requiresTwoFactor?: boolean;
+  userId?: string;
+  email?: string;
+  user?: {
+    id: string;
+    email: string;
+    role: string;
+    isVerified: boolean;
+    mfaEnabled: boolean;
+    createdAt: string;
+  };
+  accessToken?: string;
+  refreshToken?: string;
+}
+
+export interface Verify2FAResponse {
   user: {
     id: string;
     email: string;
@@ -52,6 +68,13 @@ export const authApi = {
     return await apiService.post<LoginResponse>('/auth/login', credentials);
   },
 
+  verify2FA: async (userId: string, code: string): Promise<Verify2FAResponse> => {
+    return await apiService.post<Verify2FAResponse>('/auth/verify-2fa', {
+      userId,
+      code,
+    });
+  },
+
   register: async (data: RegisterData): Promise<RegisterResponse> => {
     return await apiService.post<RegisterResponse>('/auth/register', data);
   },
@@ -60,13 +83,13 @@ export const authApi = {
     return await apiService.post('/auth/logout');
   },
 
-  refreshToken: async (): Promise<LoginResponse> => {
+  refreshToken: async (): Promise<Verify2FAResponse> => {
     // El refresh token se maneja automáticamente por el apiService con cookies httpOnly
-    return await apiService.post<LoginResponse>('/auth/refresh', {});
+    return await apiService.post<Verify2FAResponse>('/auth/refresh', {});
   },
 
-  getProfile: async (): Promise<LoginResponse['user']> => {
-    return await apiService.get<LoginResponse['user']>('/auth/me');
+  getProfile: async (): Promise<Verify2FAResponse['user']> => {
+    return await apiService.get<Verify2FAResponse['user']>('/auth/me');
   },
 };
 

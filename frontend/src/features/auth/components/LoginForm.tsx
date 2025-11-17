@@ -5,22 +5,24 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { authApi } from '@services/auth.api';
+import { TwoFactorVerification } from './TwoFactorVerification';
 import { validateEmail } from '@utils/validation';
 import { sanitizeEmail, sanitizeText } from '@utils/sanitize';
-import { UserRole } from '@/types';
 import './LoginForm.css';
 
 export function LoginForm() {
   const navigate = useNavigate();
-  const { login, isLoading, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [mfaCode, setMfaCode] = useState('');
-  const [requiresMFA, setRequiresMFA] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [attempts, setAttempts] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  
+  // Estado para 2FA
+  const [show2FA, setShow2FA] = useState(false);
+  const [twoFactorData, setTwoFactorData] = useState<{ userId: string; email: string } | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +41,6 @@ export function LoginForm() {
       newErrors.password = 'La contraseña es requerida';
     }
 
-    if (requiresMFA && mfaCode.length !== 6) {
-      newErrors.mfaCode = 'El código debe tener 6 dígitos';
-    }
-
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -58,36 +56,46 @@ export function LoginForm() {
     const sanitizedEmail = sanitizeEmail(email);
     const sanitizedPassword = sanitizeText(password);
 
-    // Intentar login REAL con backend
+    // Intentar login
     try {
-      const credentials: { identifier: string; password: string; mfaCode?: string } = {
+      setIsLoading(true);
+      
+      const response = await authApi.login({
         identifier: sanitizedEmail,
         password: sanitizedPassword,
-      };
-      
-      if (requiresMFA && mfaCode) {
-        credentials.mfaCode = mfaCode;
-      }
-      
-      const result = await login(credentials);
+      });
 
-      if (result.success && result.user) {
-        // El useAuth hook ya guardó el usuario y los tokens en el authStore
-        // Navegar al dashboard según el rol
-        const isAdmin = result.user.role === UserRole.ADMIN || result.user.role === UserRole.SUPER_ADMIN;
-        if (isAdmin) {
-          navigate('/admin/dashboard');
-        } else {
-          navigate('/dashboard');
-        }
+      // Si requiere 2FA, mostrar componente de verificación
+      if (response.requiresTwoFactor && response.userId && response.email) {
+        setTwoFactorData({ userId: response.userId, email: response.email });
+        setShow2FA(true);
       }
     } catch (err: any) {
+      console.error('Login error:', err);
       setAttempts(attempts + 1);
-      setErrors({ 
-        general: err?.response?.data?.message || error || 'Credenciales inválidas. Verifica tu ID y contraseña.' 
+      setErrors({
+        general: err?.response?.data?.message || 'Credenciales inválidas. Verifica tu email y contraseña.',
       });
+    } finally {
+      setIsLoading(false);
     }
   };
+
+  const handleCancel2FA = () => {
+    setShow2FA(false);
+    setTwoFactorData(null);
+  };
+
+  // Si estamos en modo 2FA, mostrar ese componente
+  if (show2FA && twoFactorData) {
+    return (
+      <TwoFactorVerification
+        userId={twoFactorData.userId}
+        email={twoFactorData.email}
+        onCancel={handleCancel2FA}
+      />
+    );
+  }
 
   return (
     <div className="login-form-container">

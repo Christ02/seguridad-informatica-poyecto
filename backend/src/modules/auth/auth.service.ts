@@ -7,6 +7,8 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { AuditService } from '../audit/audit.service';
+import { TwoFactorService } from './services/two-factor.service';
+import { EmailService } from './services/email.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { User } from '../users/entities/user.entity';
@@ -18,6 +20,8 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private auditService: AuditService,
+    private twoFactorService: TwoFactorService,
+    private emailService: EmailService,
   ) {}
 
   async register(registerDto: RegisterDto): Promise<{ user: Partial<User> }> {
@@ -77,10 +81,14 @@ export class AuthService {
   async login(
     loginDto: LoginDto,
     ip: string,
+    userAgent: string,
   ): Promise<{
-    user: Partial<User>;
-    accessToken: string;
-    refreshToken: string;
+    requiresTwoFactor: boolean;
+    userId?: string;
+    email?: string;
+    user?: Partial<User>;
+    accessToken?: string;
+    refreshToken?: string;
   }> {
     // Buscar usuario por email o número de identificación
     let user = await this.usersService.findByEmail(loginDto.identifier);
@@ -95,7 +103,7 @@ export class AuthService {
       await this.auditService.logLoginFailed(
         loginDto.identifier,
         ip,
-        '',
+        userAgent,
         'Usuario no encontrado',
       );
       throw new UnauthorizedException('Credenciales inválidas');
@@ -112,7 +120,7 @@ export class AuthService {
       await this.auditService.logLoginFailed(
         user.email,
         ip,
-        '',
+        userAgent,
         'Contraseña incorrecta',
       );
       throw new UnauthorizedException('Credenciales inválidas');
@@ -123,22 +131,69 @@ export class AuthService {
       await this.auditService.logLoginFailed(
         user.email,
         ip,
-        '',
+        userAgent,
         'Usuario inactivo',
       );
       throw new UnauthorizedException('Usuario inactivo');
     }
 
-    // TODO: Verificar MFA si está habilitado
-    // if (user.mfaEnabled && !loginDto.mfaCode) {
-    //   return { requiresMFA: true };
-    // }
+    // 🔐 NUEVA LÓGICA: Generar y enviar código 2FA
+    await this.twoFactorService.generateAndSend2FACode(
+      user.id,
+      user.email,
+      ip,
+      userAgent,
+    );
+
+    // Devolver respuesta indicando que se requiere 2FA
+    return {
+      requiresTwoFactor: true,
+      userId: user.id,
+      email: user.email,
+    };
+  }
+
+  async logout(userId: string): Promise<void> {
+    await this.usersService.updateRefreshToken(userId, null);
+  }
+
+  /**
+   * Verificar código 2FA y completar login
+   */
+  async verify2FAAndCompleteLogin(
+    userId: string,
+    code: string,
+    ip: string,
+    userAgent: string,
+  ): Promise<{
+    user: Partial<User>;
+    accessToken: string;
+    refreshToken: string;
+  }> {
+    // Verificar código 2FA
+    const verification = await this.twoFactorService.verify2FACode(userId, code);
+
+    if (!verification.valid) {
+      await this.auditService.logLoginFailed(
+        userId,
+        ip,
+        userAgent,
+        'Código 2FA inválido',
+      );
+      throw new UnauthorizedException('Código de verificación inválido o expirado');
+    }
+
+    // Obtener usuario
+    const user = await this.usersService.findOne(userId);
+    if (!user) {
+      throw new UnauthorizedException('Usuario no encontrado');
+    }
 
     // Generar tokens
     const tokens = await this.generateTokens(user);
 
     // Log login exitoso
-    await this.auditService.logLogin(user.id, user.email, ip, '');
+    await this.auditService.logLogin(user.id, user.email, ip, userAgent);
 
     // Guardar refresh token hasheado
     const hashedRefreshToken = await this.usersService.hashPassword(
@@ -149,6 +204,9 @@ export class AuthService {
     // Actualizar último login
     await this.usersService.updateLastLogin(user.id, ip);
 
+    // Enviar notificación de login exitoso
+    await this.emailService.sendLoginNotification(user.email, ip, userAgent);
+
     // No devolver datos sensibles
     const { password, refreshToken, ...userWithoutSensitiveData } = user;
 
@@ -157,10 +215,6 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
     };
-  }
-
-  async logout(userId: string): Promise<void> {
-    await this.usersService.updateRefreshToken(userId, null);
   }
 
   async refreshTokens(

@@ -27,7 +27,24 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto, @Req() req: Request) {
     const ip = req.ip || req.socket.remoteAddress || '';
-    return this.authService.login(loginDto, ip);
+    const userAgent = req.headers['user-agent'] || '';
+    return this.authService.login(loginDto, ip, userAgent);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-2fa')
+  async verify2FA(
+    @Body() body: { userId: string; code: string },
+    @Req() req: Request,
+  ) {
+    const ip = req.ip || req.socket.remoteAddress || '';
+    const userAgent = req.headers['user-agent'] || '';
+    return this.authService.verify2FAAndCompleteLogin(
+      body.userId,
+      body.code,
+      ip,
+      userAgent,
+    );
   }
 
   @UseGuards(JwtAuthGuard)
