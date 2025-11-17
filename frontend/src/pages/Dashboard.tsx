@@ -179,7 +179,7 @@ export function Dashboard() {
 
                           <div className="election-meta">
                             <div className="meta-item">
-                                <span>Disponible del {formatDate(election.startDate)} al {formatDate(election.endDate)}</span>
+                                <span>Del {formatDate(election.startDate)} al {formatDate(election.endDate)}</span>
                             </div>
                           </div>
 
