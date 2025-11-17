@@ -52,7 +52,12 @@ export function ResultsPage() {
     try {
       setLoading(true);
       
+      console.log('[ResultsPage] Loading results for election:', electionId);
+      console.log('[ResultsPage] User role:', user?.role);
+      console.log('[ResultsPage] Is admin?:', isAdmin);
+      
       if (isAdmin) {
+        console.log('[ResultsPage] Using ADMIN endpoints');
         const [resultsData, demographicsData] = await Promise.all([
           adminApi.getDetailedResults(electionId),
           adminApi.getDemographics(electionId),
@@ -60,11 +65,15 @@ export function ResultsPage() {
         setResults(resultsData);
         setDemographics(demographicsData);
       } else {
+        console.log('[ResultsPage] Using PUBLIC endpoints');
         // Para usuarios normales, construir formato similar desde API pública
         const [election, candidateResults] = await Promise.all([
           electionsApi.getById(electionId),
           candidatesApi.getResults(electionId),
         ]);
+        
+        console.log('[ResultsPage] Election loaded:', election);
+        console.log('[ResultsPage] Candidate results:', candidateResults);
         
         const totalVotes = candidateResults.reduce((sum, c) => sum + c.votes, 0);
         
@@ -84,10 +93,16 @@ export function ResultsPage() {
           },
         };
         
+        console.log('[ResultsPage] Results formatted:', resultsData);
         setResults(resultsData);
       }
     } catch (err: any) {
-      console.error('Error loading results:', err);
+      console.error('[ResultsPage] Error loading results:', err);
+      console.error('[ResultsPage] Error details:', {
+        message: err.message,
+        status: err.response?.status,
+        data: err.response?.data,
+      });
       setError('Error al cargar los resultados');
     } finally {
       setLoading(false);
