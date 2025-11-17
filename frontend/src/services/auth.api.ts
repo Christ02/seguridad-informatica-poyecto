@@ -60,9 +60,8 @@ export const authApi = {
     return await apiService.post('/auth/logout');
   },
 
-  refreshToken: async (refreshToken: string): Promise<LoginResponse> => {
-    // Para refresh token, no queremos agregar el token actual en el header Authorization
-    // ya que estamos renovando, así que usamos la configuración directa
+  refreshToken: async (): Promise<LoginResponse> => {
+    // El refresh token se maneja automáticamente por el apiService con cookies httpOnly
     return await apiService.post<LoginResponse>('/auth/refresh', {});
   },
 
