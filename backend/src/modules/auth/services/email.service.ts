@@ -1,22 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
 
   constructor() {
-    // Configurar transporter (usando Gmail como ejemplo, pero puedes usar otro servicio)
-    this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT || '587'),
-      secure: false, // true for 465, false for other ports
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASSWORD,
-      },
-    });
+    // Inicializar Resend solo si está configurado
+    if (process.env.RESEND_API_KEY) {
+      this.resend = new Resend(process.env.RESEND_API_KEY);
+    }
   }
 
   /**
@@ -24,9 +18,9 @@ export class EmailService {
    */
   async send2FACode(email: string, code: string, isNewDevice: boolean) {
     try {
-      // En desarrollo sin SMTP configurado, solo loggear
-      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
-        this.logger.warn(`⚠️ MODO DESARROLLO - SMTP no configurado`);
+      // En desarrollo sin Resend configurado, solo loggear
+      if (!process.env.RESEND_API_KEY || process.env.NODE_ENV === 'development') {
+        this.logger.warn(`⚠️ MODO DESARROLLO - Resend no configurado`);
         this.logger.warn(`📧 Código 2FA para ${email}: ${code}`);
         this.logger.warn(`🆕 Dispositivo nuevo: ${isNewDevice ? 'SÍ' : 'NO'}`);
         this.logger.warn(`⏱️  Expira en: 10 minutos`);
@@ -93,12 +87,6 @@ export class EmailService {
               margin: 20px 0;
               border-radius: 4px;
             }
-            .device-info {
-              background: #f3f4f6;
-              padding: 15px;
-              border-radius: 8px;
-              margin: 20px 0;
-            }
             .footer {
               text-align: center;
               margin-top: 30px;
@@ -163,19 +151,20 @@ export class EmailService {
         </html>
       `;
 
-      await this.transporter.sendMail({
-        from: `"Sistema de Votación Seguro" <${process.env.SMTP_USER}>`,
+      // Enviar con Resend
+      await this.resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Sistema de Votación <onboarding@resend.dev>',
         to: email,
         subject,
         html,
       });
 
-      this.logger.log(`📧 Código 2FA enviado a ${email}`);
+      this.logger.log(`📧 Código 2FA enviado a ${email} via Resend`);
       return true;
     } catch (error) {
       this.logger.error(`❌ Error enviando código 2FA a ${email}:`, error);
-      // En desarrollo, no fallar si no hay SMTP configurado
-      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
+      // En desarrollo, no fallar
+      if (!process.env.RESEND_API_KEY || process.env.NODE_ENV === 'development') {
         this.logger.warn(`⚠️ Modo desarrollo: Código 2FA = ${code}`);
         return true;
       }
@@ -192,8 +181,8 @@ export class EmailService {
     userAgent: string,
   ) {
     try {
-      // En desarrollo sin SMTP, solo loggear
-      if (!process.env.SMTP_USER || process.env.NODE_ENV === 'development') {
+      // En desarrollo sin Resend, solo loggear
+      if (!process.env.RESEND_API_KEY || process.env.NODE_ENV === 'development') {
         this.logger.log(`📧 Notificación de login (modo dev): ${email} desde ${ipAddress}`);
         return;
       }
@@ -270,14 +259,14 @@ export class EmailService {
         </html>
       `;
 
-      await this.transporter.sendMail({
-        from: `"Sistema de Votación Seguro" <${process.env.SMTP_USER}>`,
+      await this.resend.emails.send({
+        from: process.env.EMAIL_FROM || 'Sistema de Votación <onboarding@resend.dev>',
         to: email,
         subject: '✅ Inicio de sesión en tu cuenta',
         html,
       });
 
-      this.logger.log(`📧 Notificación de login enviada a ${email}`);
+      this.logger.log(`📧 Notificación de login enviada a ${email} via Resend`);
     } catch (error) {
       this.logger.error('❌ Error enviando notificación de login:', error);
       // No lanzar error para no bloquear el login
