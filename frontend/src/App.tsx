@@ -1,6 +1,7 @@
 /**
  * App Component
  * Componente principal con routing y protección de rutas por roles
+ * Última actualización: verificación de auto-deploy Vercel
  */
 
 import { useEffect } from 'react';
