@@ -29,6 +29,8 @@ export function Dashboard() {
         
         // Cargar todas las elecciones
         const electionsData = await electionsApi.getAll();
+        console.log('📋 Elecciones cargadas del backend:', electionsData);
+        console.log('📊 Cantidad de elecciones:', electionsData.length);
         
         // Verificar en cuáles ya votó
         const electionsWithStatus = await Promise.all(
@@ -43,8 +45,9 @@ export function Dashboard() {
         );
 
         setElections(electionsWithStatus);
+        console.log('✅ Elecciones con estado de voto:', electionsWithStatus);
       } catch (error) {
-        console.error('Error loading elections:', error);
+        console.error('❌ Error loading elections:', error);
       } finally {
         setLoading(false);
       }
@@ -64,10 +67,14 @@ export function Dashboard() {
   };
 
   const handleVote = (electionId: string) => {
+    console.log('🗳️ Navegando a votar, electionId:', electionId);
+    console.log('📍 Ruta objetivo:', `/vote/${electionId}`);
     navigate(`/vote/${electionId}`);
   };
 
   const handleViewResults = (electionId: string) => {
+    console.log('📊 Navegando a resultados, electionId:', electionId);
+    console.log('📍 Ruta objetivo:', `/results/${electionId}`);
     navigate(`/results/${electionId}`);
   };
 
@@ -83,6 +90,10 @@ export function Dashboard() {
   const activeElections = elections.filter(e => e.status === 'ACTIVE');
   const upcomingElections = elections.filter(e => e.status === 'DRAFT');
   const completedElections = elections.filter(e => e.status === 'COMPLETED' || e.status === 'CLOSED');
+
+  console.log('🔵 Elecciones ACTIVAS:', activeElections.length, activeElections);
+  console.log('🟡 Elecciones PRÓXIMAS:', upcomingElections.length, upcomingElections);
+  console.log('🟢 Elecciones FINALIZADAS:', completedElections.length, completedElections);
 
   return (
     <div className="dashboard-container">
