@@ -8,6 +8,8 @@ import { useParams } from 'react-router-dom';
 import { Sidebar } from '@components/Sidebar';
 import { adminApi } from '@services/admin.api';
 import type { DetailedResults, Demographics } from '@services/admin.api';
+import { candidatesApi, type CandidateResult } from '@services/candidates.api';
+import { electionsApi } from '@services/elections.api';
 import { useAuthStore } from '@features/auth/store/authStore';
 import { UserRole } from '@/types';
 import {
@@ -58,8 +60,30 @@ export function ResultsPage() {
         setResults(resultsData);
         setDemographics(demographicsData);
       } else {
-        // Para usuarios normales, usar API pública
-        const resultsData = await adminApi.getDetailedResults(electionId);
+        // Para usuarios normales, construir formato similar desde API pública
+        const [election, candidateResults] = await Promise.all([
+          electionsApi.getById(electionId),
+          candidatesApi.getResults(electionId),
+        ]);
+        
+        const totalVotes = candidateResults.reduce((sum, c) => sum + c.votes, 0);
+        
+        const resultsData: DetailedResults = {
+          election: {
+            id: election.id,
+            title: election.title,
+            description: election.description,
+            status: election.status,
+            startDate: election.startDate,
+            endDate: election.endDate,
+          },
+          results: {
+            totalVotes,
+            candidates: candidateResults,
+            winner: candidateResults[0] || null,
+          },
+        };
+        
         setResults(resultsData);
       }
     } catch (err: any) {
