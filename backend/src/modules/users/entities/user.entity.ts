@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   Index,
   DeleteDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { UserRole } from '../../../common/enums/user-role.enum';
 
@@ -82,6 +83,10 @@ export class User {
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date | null;
+
+  // Relación con códigos 2FA
+  @OneToMany('TwoFactorCode', 'user')
+  twoFactorCodes: any[];
 
   // Método helper para obtener el nombre completo
   get fullName(): string {
