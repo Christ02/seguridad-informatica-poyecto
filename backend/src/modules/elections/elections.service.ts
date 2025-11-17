@@ -65,10 +65,10 @@ export class ElectionsService {
       .where('election.isActive = :isActive', { isActive: true })
       .orderBy('election.createdAt', 'DESC');
 
-    // Si no es admin, solo mostrar elecciones activas o completadas
+    // Si no es admin, solo mostrar elecciones activas, cerradas o completadas
     if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
       query.andWhere('election.status IN (:...statuses)', {
-        statuses: [ElectionStatus.ACTIVE, ElectionStatus.COMPLETED],
+        statuses: [ElectionStatus.ACTIVE, ElectionStatus.CLOSED, ElectionStatus.COMPLETED],
       });
     }
 
