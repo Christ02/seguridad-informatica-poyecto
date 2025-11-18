@@ -1,31 +1,31 @@
-# DocumentaciÃn Completa - VoteSecure
+# DocumentaciÃ³n Completa - VoteSecure
 
-## DescripciÃn General
+## DescripciÃ³n General
 
-**VoteSecure** es un sistema de votaciÃn electrÃ³nica seguro desarrollado con tecnologÃ­as modernas, que implementa autenticaciÃ³n de dos factores (2FA), encriptaciÃ³n end-to-end, y auditorÃ­a completa de todas las acciones.
+**VoteSecure** es un sistema de votaciÃ³n electrÃ³nica seguro desarrollado con tecnologÃ­as modernas, que implementa autenticaciÃ³n de dos factores (2FA), encriptaciÃ³n end-to-end, y auditorÃ­a completa de todas las acciones.
 
-### Ÿ—ï¸ Arquitectura
+### Arquitectura
 
 ```
 VoteSecure/
-”œâ”€â”€ backend/          # API REST con NestJS
-”œâ”€â”€ frontend/         # AplicaciÃ³n web con React + TypeScript
-””â”€â”€ .github/          # CI/CD y seguridad automatizada
+ backend/ # API REST con NestJS
+ frontend/ # AplicaciÃ³n web con React + TypeScript
+ .github/ # CI/CD y seguridad automatizada
 ```
 
 ---
 
-## Ÿ”§ Stack TecnolÃ³gico
+## Stack TecnolÃ³gico
 
 ### Backend
 
 - **Framework:** NestJS (Node.js + TypeScript)
 - **Base de datos:** PostgreSQL
 - **ORM:** TypeORM
-- **AutenticaciÃn:** JWT + Passport
+- **AutenticaciÃ³n:** JWT + Passport
 - **Email:** Resend
 - **Seguridad:** Helmet, CORS, Rate Limiting
-- **ValidaciÃn:** class-validator, class-transformer
+- **ValidaciÃ³n:** class-validator, class-transformer
 - **Cron Jobs:** @nestjs/schedule
 
 ### Frontend
@@ -43,293 +43,289 @@ VoteSecure/
 - **Hosting Backend:** Railway
 - **Hosting Frontend:** Vercel
 - **CI/CD:** GitHub Actions
-- **ContainerizaciÃn:** Docker
+- **ContainerizaciÃ³n:** Docker
 - **Security Scans:** TruffleHog, Trivy, CodeQL
 
 ---
 
-## Ÿ“ Estructura del Proyecto
+## Estructura del Proyecto
 
-### Ÿ”¹ Backend (`/backend`)
+### Backend (`/backend`)
 
 ```
 backend/
-”œâ”€â”€ src/
-”‚   â”œâ”€â”€ main.ts                    # Punto de entrada de la aplicaciÃ³n
-”‚   â”œâ”€â”€ app.module.ts              # MÃ³dulo raÃ­z
-”‚   â”œâ”€â”€ app.controller.ts          # Controlador principal
-”‚   â”œâ”€â”€ app.service.ts             # Servicio principal
-”‚   â”‚
-”‚   â”œâ”€â”€ common/                    # CÃ³digo compartido
-”‚   â”‚   â”œâ”€â”€ decorators/
-”‚   â”‚   â”‚   â””â”€â”€ roles.decorator.ts # Decorador @Roles() para autorizaciÃ³n
-”‚   â”‚   â””â”€â”€ enums/
-”‚   â”‚       â””â”€â”€ user-role.enum.ts  # Enum de roles (VOTER, ADMIN, SUPER_ADMIN)
-”‚   â”‚
-”‚   â”œâ”€â”€ config/                    # Configuraciones
-”‚   â”‚   â”œâ”€â”€ database.config.ts     # ConfiguraciÃ³n de PostgreSQL
-”‚   â”‚   â”œâ”€â”€ mongodb.config.ts      # ConfiguraciÃ³n de MongoDB (opcional)
-”‚   â”‚   â””â”€â”€ redis.config.ts        # ConfiguraciÃ³n de Redis (opcional)
-”‚   â”‚
-”‚   â”œâ”€â”€ database/                  # Base de datos
-”‚   â”‚   â”œâ”€â”€ migrations/            # Migraciones de TypeORM
-”‚   â”‚   â”‚   â””â”€â”€ 1700000000000-CreateTwoFactorCodesTable.ts
-”‚   â”‚   â””â”€â”€ seeds/                 # Seeds para datos iniciales
-”‚   â”‚       â”œâ”€â”€ run-seeds.ts       # Script para ejecutar seeds
-”‚   â”‚       â”œâ”€â”€ seed.ts            # Seed principal
-”‚   â”‚       â”œâ”€â”€ users.seed.ts      # Seed de usuarios
-”‚   â”‚       â””â”€â”€ elections.seed.ts  # Seed de elecciones
-”‚   â”‚
-”‚   â””â”€â”€ modules/                   # MÃ³dulos funcionales
-”‚       â”‚
-”‚       â”œâ”€â”€ admin/                 # ğŸ‘‘ MÃ³dulo de AdministraciÃ³n
-”‚       â”‚   â”œâ”€â”€ admin.controller.ts    # Endpoints de admin
-”‚       â”‚   â”œâ”€â”€ admin.service.ts       # LÃ³gica de negocio admin
-”‚       â”‚   â”œâ”€â”€ admin.module.ts        # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â””â”€â”€ dto/
-”‚       â”‚       â””â”€â”€ admin.dto.ts       # DTOs para estadÃ­sticas y reportes
-”‚       â”‚
-”‚       â”œâ”€â”€ audit/                 # ğŸ“ MÃ³dulo de AuditorÃ­a
-”‚       â”‚   â”œâ”€â”€ audit.service.ts       # Registro de acciones
-”‚       â”‚   â”œâ”€â”€ audit.module.ts        # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â””â”€â”€ entities/
-”‚       â”‚       â””â”€â”€ audit-log.entity.ts # Entidad de logs de auditorÃ­a
-”‚       â”‚
-”‚       â”œâ”€â”€ auth/                  # ğŸ” MÃ³dulo de AutenticaciÃ³n
-”‚       â”‚   â”œâ”€â”€ auth.controller.ts     # Endpoints: login, register, 2FA
-”‚       â”‚   â”œâ”€â”€ auth.service.ts        # LÃ³gica de autenticaciÃ³n
-”‚       â”‚   â”œâ”€â”€ auth.module.ts         # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â”œâ”€â”€ dto/
-”‚       â”‚   â”‚   â”œâ”€â”€ login.dto.ts       # DTO para login
-”‚       â”‚   â”‚   â””â”€â”€ register.dto.ts    # DTO para registro
-”‚       â”‚   â”œâ”€â”€ entities/
-”‚       â”‚   â”‚   â””â”€â”€ two-factor-code.entity.ts # Entidad de cÃ³digos 2FA
-”‚       â”‚   â”œâ”€â”€ guards/
-”‚       â”‚   â”‚   â”œâ”€â”€ jwt-auth.guard.ts      # Guard de autenticaciÃ³n JWT
-”‚       â”‚   â”‚   â”œâ”€â”€ jwt-refresh.guard.ts   # Guard de refresh token
-”‚       â”‚   â”‚   â””â”€â”€ roles.guard.ts         # Guard de autorizaciÃ³n por roles
-”‚       â”‚   â”œâ”€â”€ services/
-”‚       â”‚   â”‚   â”œâ”€â”€ email.service.ts       # EnvÃ­o de emails (Resend)
-”‚       â”‚   â”‚   â””â”€â”€ two-factor.service.ts  # LÃ³gica de 2FA
-”‚       â”‚   â””â”€â”€ strategies/
-”‚       â”‚       â”œâ”€â”€ jwt.strategy.ts        # Estrategia JWT
-”‚       â”‚       â””â”€â”€ jwt-refresh.strategy.ts # Estrategia refresh token
-”‚       â”‚
-”‚       â”œâ”€â”€ candidates/            # ğŸ­ MÃ³dulo de Candidatos
-”‚       â”‚   â”œâ”€â”€ candidates.controller.ts   # CRUD de candidatos
-”‚       â”‚   â”œâ”€â”€ candidates.service.ts      # LÃ³gica de candidatos
-”‚       â”‚   â”œâ”€â”€ candidates.module.ts       # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â””â”€â”€ entities/
-”‚       â”‚       â””â”€â”€ candidate.entity.ts    # Entidad de candidato
-”‚       â”‚
-”‚       â”œâ”€â”€ elections/             # ğŸ—³ï¸ MÃ³dulo de Elecciones
-”‚       â”‚   â”œâ”€â”€ elections.controller.ts    # CRUD de elecciones
-”‚       â”‚   â”œâ”€â”€ elections.service.ts       # LÃ³gica de elecciones
-”‚       â”‚   â”œâ”€â”€ elections.module.ts        # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â”œâ”€â”€ elections-scheduler.service.ts # Cron jobs (activar/cerrar)
-”‚       â”‚   â”œâ”€â”€ dto/
-”‚       â”‚   â”‚   â”œâ”€â”€ create-election.dto.ts # DTO para crear elecciÃ³n
-”‚       â”‚   â”‚   â””â”€â”€ update-election.dto.ts # DTO para actualizar elecciÃ³n
-”‚       â”‚   â””â”€â”€ entities/
-”‚       â”‚       â””â”€â”€ election.entity.ts     # Entidad de elecciÃ³n
-”‚       â”‚
-”‚       â”œâ”€â”€ users/                 # ğŸ‘¤ MÃ³dulo de Usuarios
-”‚       â”‚   â”œâ”€â”€ users.controller.ts        # CRUD de usuarios
-”‚       â”‚   â”œâ”€â”€ users.service.ts           # LÃ³gica de usuarios
-”‚       â”‚   â”œâ”€â”€ users.module.ts            # ConfiguraciÃ³n del mÃ³dulo
-”‚       â”‚   â”œâ”€â”€ dto/
-”‚       â”‚   â”‚   â””â”€â”€ update-profile.dto.ts  # DTO para actualizar perfil
-”‚       â”‚   â””â”€â”€ entities/
-”‚       â”‚       â””â”€â”€ user.entity.ts         # Entidad de usuario
-”‚       â”‚
-”‚       â””â”€â”€ votes/                 # ğŸ—³ï¸ MÃ³dulo de Votos
-”‚           â”œâ”€â”€ votes.controller.ts        # Endpoints de votaciÃ³n
-”‚           â”œâ”€â”€ votes.service.ts           # LÃ³gica de votos
-”‚           â”œâ”€â”€ votes.module.ts            # ConfiguraciÃ³n del mÃ³dulo
-”‚           â”œâ”€â”€ dto/
-”‚           â”‚   â”œâ”€â”€ cast-vote.dto.ts       # DTO para emitir voto
-”‚           â”‚   â””â”€â”€ verify-vote.dto.ts     # DTO para verificar voto
-”‚           â””â”€â”€ entities/
-”‚               â””â”€â”€ vote.entity.ts         # Entidad de voto
-”‚
-”œâ”€â”€ Dockerfile                     # Dockerfile para backend
-”œâ”€â”€ package.json                   # Dependencias de Node.js
-”œâ”€â”€ tsconfig.json                  # ConfiguraciÃ³n de TypeScript
-”œâ”€â”€ nest-cli.json                  # ConfiguraciÃ³n de NestJS CLI
-”œâ”€â”€ env.example                    # Ejemplo de variables de entorno
-”œâ”€â”€ railway.json                   # ConfiguraciÃ³n de Railway
-””â”€â”€ railway.toml                   # ConfiguraciÃ³n de Railway
+ src/
+ main.ts # Punto de entrada de la aplicaciÃ³n
+ app.module.ts # MÃ³dulo raÃ­z
+ app.controller.ts # Controlador principal
+ app.service.ts # Servicio principal
+ 
+ common/ # CÃ³digo compartido
+ decorators/
+ roles.decorator.ts # Decorador @Roles() para autorizaciÃ³n
+ enums/
+ user-role.enum.ts # Enum de roles (VOTER, ADMIN, SUPER_ADMIN)
+ 
+ config/ # Configuraciones
+ database.config.ts # ConfiguraciÃ³n de PostgreSQL
+ mongodb.config.ts # ConfiguraciÃ³n de MongoDB (opcional)
+ redis.config.ts # ConfiguraciÃ³n de Redis (opcional)
+ 
+ database/ # Base de datos
+ migrations/ # Migraciones de TypeORM
+ 1700000000000-CreateTwoFactorCodesTable.ts
+ seeds/ # Seeds para datos iniciales
+ run-seeds.ts # Script para ejecutar seeds
+ seed.ts # Seed principal
+ users.seed.ts # Seed de usuarios
+ elections.seed.ts # Seed de elecciones
+ 
+ modules/ # MÃ³dulos funcionales
+ 
+ admin/ # MÃ³dulo de AdministraciÃ³n
+ admin.controller.ts # Endpoints de admin
+ admin.service.ts # LÃ³gica de negocio admin
+ admin.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ dto/
+ admin.dto.ts # DTOs para estadÃ­sticas y reportes
+ 
+ audit/ # MÃ³dulo de AuditorÃ­a
+ audit.service.ts # Registro de acciones
+ audit.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ entities/
+ audit-log.entity.ts # Entidad de logs de auditorÃ­a
+ 
+ auth/ # MÃ³dulo de AutenticaciÃ³n
+ auth.controller.ts # Endpoints: login, register, 2FA
+ auth.service.ts # LÃ³gica de autenticaciÃ³n
+ auth.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ dto/
+ login.dto.ts # DTO para login
+ register.dto.ts # DTO para registro
+ entities/
+ two-factor-code.entity.ts # Entidad de cÃ³digos 2FA
+ guards/
+ jwt-auth.guard.ts # Guard de autenticaciÃ³n JWT
+ jwt-refresh.guard.ts # Guard de refresh token
+ roles.guard.ts # Guard de autorizaciÃ³n por roles
+ services/
+ email.service.ts # EnvÃ­o de emails (Resend)
+ two-factor.service.ts # LÃ³gica de 2FA
+ strategies/
+ jwt.strategy.ts # Estrategia JWT
+ jwt-refresh.strategy.ts # Estrategia refresh token
+ 
+ candidates/ # MÃ³dulo de Candidatos
+ candidates.controller.ts # CRUD de candidatos
+ candidates.service.ts # LÃ³gica de candidatos
+ candidates.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ entities/
+ candidate.entity.ts # Entidad de candidato
+ 
+ elections/ # MÃ³dulo de Elecciones
+ elections.controller.ts # CRUD de elecciones
+ elections.service.ts # LÃ³gica de elecciones
+ elections.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ elections-scheduler.service.ts # Cron jobs (activar/cerrar)
+ dto/
+ create-election.dto.ts # DTO para crear elecciÃ³n
+ update-election.dto.ts # DTO para actualizar elecciÃ³n
+ entities/
+ election.entity.ts # Entidad de elecciÃ³n
+ 
+ users/ # MÃ³dulo de Usuarios
+ users.controller.ts # CRUD de usuarios
+ users.service.ts # LÃ³gica de usuarios
+ users.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ dto/
+ update-profile.dto.ts # DTO para actualizar perfil
+ entities/
+ user.entity.ts # Entidad de usuario
+ 
+ votes/ # MÃ³dulo de Votos
+ votes.controller.ts # Endpoints de votaciÃ³n
+ votes.service.ts # LÃ³gica de votos
+ votes.module.ts # ConfiguraciÃ³n del mÃ³dulo
+ dto/
+ cast-vote.dto.ts # DTO para emitir voto
+ verify-vote.dto.ts # DTO para verificar voto
+ entities/
+ vote.entity.ts # Entidad de voto
+
+ Dockerfile # Dockerfile para backend
+ package.json # Dependencias de Node.js
+ tsconfig.json # ConfiguraciÃ³n de TypeScript
+ nest-cli.json # ConfiguraciÃ³n de NestJS CLI
+ env.example # Ejemplo de variables de entorno
+ railway.json # ConfiguraciÃ³n de Railway
+ railway.toml # ConfiguraciÃ³n de Railway
 ```
 
 ---
 
-### Ÿ”¹ Frontend (`/frontend`)
+### Frontend (`/frontend`)
 
 ```
 frontend/
-”œâ”€â”€ src/
-”‚   â”œâ”€â”€ main.tsx                   # Punto de entrada de React
-”‚   â”œâ”€â”€ App.tsx                    # Componente raÃ­z con rutas
-”‚   â”œâ”€â”€ App.css                    # Estilos globales de App
-”‚   â”œâ”€â”€ index.css                  # Estilos globales
-”‚   â”‚
-”‚   â”œâ”€â”€ components/                # ğŸ§© Componentes Reutilizables
-”‚   â”‚   â”œâ”€â”€ AdminLayout.tsx        # Layout para panel de admin
-”‚   â”‚   â”œâ”€â”€ AdminLayout.css
-”‚   â”‚   â”œâ”€â”€ Sidebar.tsx            # Barra lateral de navegaciÃ³n
-”‚   â”‚   â”œâ”€â”€ Sidebar.css
-”‚   â”‚   â”œâ”€â”€ LoadingSpinner.tsx     # Spinner de carga
-”‚   â”‚   â”œâ”€â”€ LoadingSpinner.css
-”‚   â”‚   â”œâ”€â”€ Skeleton.tsx           # Skeleton loader
-”‚   â”‚   â”œâ”€â”€ Skeleton.css
-”‚   â”‚   â”œâ”€â”€ Toast.tsx              # Notificaciones toast
-”‚   â”‚   â”œâ”€â”€ Toast.css
-”‚   â”‚   â”œâ”€â”€ ToastContainer.tsx     # Contenedor de toasts
-”‚   â”‚   â”œâ”€â”€ ToastContainer.css
-”‚   â”‚   â”œâ”€â”€ VoteReceiptModal.tsx   # Modal de recibo de voto
-”‚   â”‚   â””â”€â”€ VoteReceiptModal.css
-”‚   â”‚
-”‚   â”œâ”€â”€ features/                  # ğŸ¨ Features por Dominio
-”‚   â”‚   â”‚
-”‚   â”‚   â””â”€â”€ auth/                  # ğŸ” Feature de AutenticaciÃ³n
-”‚   â”‚       â”œâ”€â”€ components/
-”‚   â”‚       â”‚   â”œâ”€â”€ LoginForm.tsx          # Formulario de login
-”‚   â”‚       â”‚   â”œâ”€â”€ LoginForm.css
-”‚   â”‚       â”‚   â”œâ”€â”€ RegisterForm.tsx       # Formulario de registro
-”‚   â”‚       â”‚   â”œâ”€â”€ RegisterForm.css
-”‚   â”‚       â”‚   â”œâ”€â”€ TwoFactorVerification.tsx # VerificaciÃ³n 2FA
-”‚   â”‚       â”‚   â””â”€â”€ TwoFactorVerification.css
-”‚   â”‚       â”œâ”€â”€ hooks/
-”‚   â”‚       â”‚   â””â”€â”€ useAuth.ts             # Hook de autenticaciÃ³n
-”‚   â”‚       â”œâ”€â”€ services/
-”‚   â”‚       â”‚   â””â”€â”€ mfa.service.ts         # Servicio de MFA
-”‚   â”‚       â””â”€â”€ store/
-”‚   â”‚           â””â”€â”€ authStore.ts           # Estado global de auth (Zustand)
-”‚   â”‚
-”‚   â”œâ”€â”€ pages/                     # ğŸ“„ PÃ¡ginas de la AplicaciÃ³n
-”‚   â”‚   â”‚
-”‚   â”‚   â”œâ”€â”€ Dashboard.tsx          # ğŸ  Dashboard de usuario
-”‚   â”‚   â”œâ”€â”€ Dashboard.css
-”‚   â”‚   â”œâ”€â”€ VotingPage.tsx         # ğŸ—³ï¸ PÃ¡gina de votaciÃ³n
-”‚   â”‚   â”œâ”€â”€ VotingPage.css
-”‚   â”‚   â”œâ”€â”€ VotingHistory.tsx      # ğŸ“œ Historial de votos del usuario
-”‚   â”‚   â”œâ”€â”€ VotingHistory.css
-”‚   â”‚   â”œâ”€â”€ ResultsListPage.tsx    # ğŸ“Š Lista de resultados
-”‚   â”‚   â”œâ”€â”€ ResultsListPage.css
-”‚   â”‚   â”œâ”€â”€ ResultsPage.tsx        # ğŸ“Š Resultados detallados
-”‚   â”‚   â”œâ”€â”€ ResultsPage.css
-”‚   â”‚   â”œâ”€â”€ ProfilePage.tsx        # ğŸ‘¤ Perfil de usuario
-”‚   â”‚   â”œâ”€â”€ ProfilePage.css
-”‚   â”‚   â”œâ”€â”€ SettingsPage.tsx       # âš™ï¸ ConfiguraciÃ³n
-”‚   â”‚   â”œâ”€â”€ SettingsPage.css
-”‚   â”‚   â”œâ”€â”€ HelpPage.tsx           # â“ Ayuda
-”‚   â”‚   â”œâ”€â”€ HelpPage.css
-”‚   â”‚   â”‚
-”‚   â”‚   â”œâ”€â”€ AdminDashboard.tsx     # ğŸ‘‘ Dashboard de administrador
-”‚   â”‚   â”œâ”€â”€ AdminDashboard.css
-”‚   â”‚   â”‚
-”‚   â”‚   â””â”€â”€ admin/                 # ğŸ‘‘ PÃ¡ginas de AdministraciÃ³n
-”‚   â”‚       â”œâ”€â”€ CreateElection.tsx     # Crear/editar elecciones
-”‚   â”‚       â”œâ”€â”€ CreateElection.css
-”‚   â”‚       â”œâ”€â”€ ManageCandidates.tsx   # Gestionar candidatos
-”‚   â”‚       â”œâ”€â”€ ManageCandidates.css
-”‚   â”‚       â”œâ”€â”€ ManageVoters.tsx       # Gestionar votantes
-”‚   â”‚       â”œâ”€â”€ ManageVoters.css
-”‚   â”‚       â”œâ”€â”€ ElectionResults.tsx    # Resultados de elecciÃ³n (admin)
-”‚   â”‚       â”œâ”€â”€ ElectionResults.css
-”‚   â”‚       â”œâ”€â”€ AdminVotesHistory.tsx  # Historial de votos (admin)
-”‚   â”‚       â””â”€â”€ AdminVotesHistory.css
-”‚   â”‚
-”‚   â”œâ”€â”€ services/                  # ğŸŒ Servicios de API
-”‚   â”‚   â”œâ”€â”€ api.service.ts         # Cliente HTTP base (Axios)
-”‚   â”‚   â”œâ”€â”€ auth.api.ts            # API de autenticaciÃ³n
-”‚   â”‚   â”œâ”€â”€ users.api.ts           # API de usuarios
-”‚   â”‚   â”œâ”€â”€ elections.api.ts       # API de elecciones
-”‚   â”‚   â”œâ”€â”€ candidates.api.ts      # API de candidatos
-”‚   â”‚   â”œâ”€â”€ votes.api.ts           # API de votos
-”‚   â”‚   â””â”€â”€ admin.api.ts           # API de administraciÃ³n
-”‚   â”‚
-”‚   â”œâ”€â”€ hooks/                     # ğŸª Custom Hooks
-”‚   â”‚   â””â”€â”€ useToast.ts            # Hook para notificaciones
-”‚   â”‚
-”‚   â”œâ”€â”€ utils/                     # ğŸ› ï¸ Utilidades
-”‚   â”‚   â”œâ”€â”€ crypto.ts              # Funciones de encriptaciÃ³n
-”‚   â”‚   â”œâ”€â”€ validation.ts          # Validaciones de formularios
-”‚   â”‚   â”œâ”€â”€ sanitize.ts            # SanitizaciÃ³n de inputs
-”‚   â”‚   â”œâ”€â”€ logger.ts              # Logger del cliente
-”‚   â”‚   â”œâ”€â”€ pdfGenerator.ts        # GeneraciÃ³n de PDFs (usuario)
-”‚   â”‚   â””â”€â”€ adminPdfGenerator.ts   # GeneraciÃ³n de PDFs (admin)
-”‚   â”‚
-”‚   â”œâ”€â”€ types/                     # ğŸ“ Tipos de TypeScript
-”‚   â”‚   â””â”€â”€ index.ts               # Tipos compartidos
-”‚   â”‚
-”‚   â”œâ”€â”€ config/                    # âš™ï¸ Configuraciones
-”‚   â”‚   â””â”€â”€ security.config.ts     # ConfiguraciÃ³n de seguridad
-”‚   â”‚
-”‚   â”œâ”€â”€ data/                      # ğŸ“Š Datos EstÃ¡ticos
-”‚   â”‚   â””â”€â”€ guatemala-locations.ts # Departamentos y municipios
-”‚   â”‚
-”‚   â””â”€â”€ styles/                    # ğŸ¨ Estilos Compartidos
-”‚       â””â”€â”€ admin-shared.css       # Estilos compartidos de admin
-”‚
-”œâ”€â”€ public/                        # ğŸ“ Archivos PÃºblicos
-”‚   â”œâ”€â”€ vote-icon.svg              # Favicon personalizado
-”‚   â””â”€â”€ vite.svg                   # Logo de Vite
-”‚
-”œâ”€â”€ index.html                     # HTML principal
-”œâ”€â”€ Dockerfile                     # Dockerfile para frontend
-”œâ”€â”€ nginx.conf                     # ConfiguraciÃ³n de Nginx
-”œâ”€â”€ package.json                   # Dependencias de Node.js
-”œâ”€â”€ tsconfig.json                  # ConfiguraciÃ³n de TypeScript
-”œâ”€â”€ vite.config.ts                 # ConfiguraciÃ³n de Vite
-”œâ”€â”€ vitest.config.ts               # ConfiguraciÃ³n de Vitest (tests)
-””â”€â”€ vercel.json                    # ConfiguraciÃ³n de Vercel
+ src/
+ main.tsx # Punto de entrada de React
+ App.tsx # Componente raÃ­z con rutas
+ App.css # Estilos globales de App
+ index.css # Estilos globales
+ 
+ components/ # Componentes Reutilizables
+ AdminLayout.tsx # Layout para panel de admin
+ AdminLayout.css
+ Sidebar.tsx # Barra lateral de navegaciÃ³n
+ Sidebar.css
+ LoadingSpinner.tsx # Spinner de carga
+ LoadingSpinner.css
+ Skeleton.tsx # Skeleton loader
+ Skeleton.css
+ Toast.tsx # Notificaciones toast
+ Toast.css
+ ToastContainer.tsx # Contenedor de toasts
+ ToastContainer.css
+ VoteReceiptModal.tsx # Modal de recibo de voto
+ VoteReceiptModal.css
+ 
+ features/ # Features por Dominio
+ 
+ auth/ # Feature de AutenticaciÃ³n
+ components/
+ LoginForm.tsx # Formulario de login
+ LoginForm.css
+ RegisterForm.tsx # Formulario de registro
+ RegisterForm.css
+ TwoFactorVerification.tsx # VerificaciÃ³n 2FA
+ TwoFactorVerification.css
+ hooks/
+ useAuth.ts # Hook de autenticaciÃ³n
+ services/
+ mfa.service.ts # Servicio de MFA
+ store/
+ authStore.ts # Estado global de auth (Zustand)
+ 
+ pages/ # PÃ¡ginas de la AplicaciÃ³n
+ 
+ Dashboard.tsx # Dashboard de usuario
+ Dashboard.css
+ VotingPage.tsx # PÃ¡gina de votaciÃ³n
+ VotingPage.css
+ VotingHistory.tsx # Historial de votos del usuario
+ VotingHistory.css
+ ResultsListPage.tsx # Lista de resultados
+ ResultsListPage.css
+ ResultsPage.tsx # Resultados detallados
+ ResultsPage.css
+ ProfilePage.tsx # Perfil de usuario
+ ProfilePage.css
+ SettingsPage.tsx # ConfiguraciÃ³n
+ SettingsPage.css
+ HelpPage.tsx # Ayuda
+ HelpPage.css
+ 
+ AdminDashboard.tsx # Dashboard de administrador
+ AdminDashboard.css
+ 
+ admin/ # PÃ¡ginas de AdministraciÃ³n
+ CreateElection.tsx # Crear/editar elecciones
+ CreateElection.css
+ ManageCandidates.tsx # Gestionar candidatos
+ ManageCandidates.css
+ ManageVoters.tsx # Gestionar votantes
+ ManageVoters.css
+ ElectionResults.tsx # Resultados de elecciÃ³n (admin)
+ ElectionResults.css
+ AdminVotesHistory.tsx # Historial de votos (admin)
+ AdminVotesHistory.css
+ 
+ services/ # Servicios de API
+ api.service.ts # Cliente HTTP base (Axios)
+ auth.api.ts # API de autenticaciÃ³n
+ users.api.ts # API de usuarios
+ elections.api.ts # API de elecciones
+ candidates.api.ts # API de candidatos
+ votes.api.ts # API de votos
+ admin.api.ts # API de administraciÃ³n
+ 
+ hooks/ # ğŸª Custom Hooks
+ useToast.ts # Hook para notificaciones
+ 
+ utils/ # Utilidades
+ crypto.ts # Funciones de encriptaciÃ³n
+ validation.ts # Validaciones de formularios
+ sanitize.ts # SanitizaciÃ³n de inputs
+ logger.ts # Logger del cliente
+ pdfGenerator.ts # GeneraciÃ³n de PDFs (usuario)
+ adminPdfGenerator.ts # GeneraciÃ³n de PDFs (admin)
+ 
+ types/ # Tipos de TypeScript
+ index.ts # Tipos compartidos
+ 
+ config/ # Configuraciones
+ security.config.ts # ConfiguraciÃ³n de seguridad
+ 
+ data/ # Datos EstÃ¡ticos
+ guatemala-locations.ts # Departamentos y municipios
+ 
+ styles/ # Estilos Compartidos
+ admin-shared.css # Estilos compartidos de admin
+
+ public/ # Archivos PÃºblicos
+ vote-icon.svg # Favicon personalizado
+ vite.svg # Logo de Vite
+
+ index.html # HTML principal
+ Dockerfile # Dockerfile para frontend
+ nginx.conf # ConfiguraciÃ³n de Nginx
+ package.json # Dependencias de Node.js
+ tsconfig.json # ConfiguraciÃ³n de TypeScript
+ vite.config.ts # ConfiguraciÃ³n de Vite
+ vitest.config.ts # ConfiguraciÃ³n de Vitest (tests)
+ vercel.json # ConfiguraciÃ³n de Vercel
 ```
 
 ---
 
-## Ÿ” MÃ³dulos del Backend - Detalle
+## MÃ³dulos del Backend - Detalle
 
 ### 1. **Auth Module** (`/modules/auth`)
 
-**Responsabilidad:** AutenticaciÃn y autorizaciÃ³n de usuarios.
+**Responsabilidad:** AutenticaciÃ³n y autorizaciÃ³n de usuarios.
 
 #### Archivos Principales:
 
 - **`auth.controller.ts`**
-
-  - `POST /auth/register` - Registrar nuevo usuario
-  - `POST /auth/login` - Iniciar sesiÃn (genera cÃ³digo 2FA)
-  - `POST /auth/verify-2fa` - Verificar cÃdigo 2FA y completar login
-  - `POST /auth/logout` - Cerrar sesiÃn
-  - `POST /auth/refresh` - Refrescar access token
-  - `GET /auth/me` - Obtener perfil del usuario autenticado
+- `POST /auth/register` - Registrar nuevo usuario
+- `POST /auth/login` - Iniciar sesiÃ³n (genera cÃ³digo 2FA)
+- `POST /auth/verify-2fa` - Verificar cÃ³digo 2FA y completar login
+- `POST /auth/logout` - Cerrar sesiÃ³n
+- `POST /auth/refresh` - Refrescar access token
+- `GET /auth/me` - Obtener perfil del usuario autenticado
 - **`auth.service.ts`**
-
-  - `register()` - Crear usuario con contraseÃ±a hasheada
-  - `login()` - Validar credenciales y generar cÃdigo 2FA
-  - `verify2FAAndCompleteLogin()` - Verificar 2FA y generar tokens JWT
-  - `validateUser()` - Validar credenciales
-  - `generateTokens()` - Generar access y refresh tokens
+- `register()` - Crear usuario con contraseÃ±a hasheada
+- `login()` - Validar credenciales y generar cÃ³digo 2FA
+- `verify2FAAndCompleteLogin()` - Verificar 2FA y generar tokens JWT
+- `validateUser()` - Validar credenciales
+- `generateTokens()` - Generar access y refresh tokens
 - **`email.service.ts`**
-
-  - `send2FACode()` - Enviar cÃdigo 2FA por email (Resend)
-  - `sendLoginNotification()` - Notificar login desde nuevo dispositivo
+- `send2FACode()` - Enviar cÃ³digo 2FA por email (Resend)
+- `sendLoginNotification()` - Notificar login desde nuevo dispositivo
 - **`two-factor.service.ts`**
-
-  - `generateAndSend2FACode()` - Generar cÃdigo de 6 dÃ­gitos y enviarlo
-  - `verify2FACode()` - Validar cÃdigo 2FA
-  - `isNewDevice()` - Detectar si es un dispositivo nuevo
+- `generateAndSend2FACode()` - Generar cÃ³digo de 6 dÃ­gitos y enviarlo
+- `verify2FACode()` - Validar cÃ³digo 2FA
+- `isNewDevice()` - Detectar si es un dispositivo nuevo
 
 #### Entidades:
 
 - **`two-factor-code.entity.ts`**
-  - Almacena cÃdigos 2FA temporales (10 min de expiraciÃ³n)
-  - Campos: `code`, `userId`, `expiresAt`, `ipAddress`, `userAgent`, `isNewDevice`
+- Almacena cÃ³digos 2FA temporales (10 min de expiraciÃ³n)
+- Campos: `code`, `userId`, `expiresAt`, `ipAddress`, `userAgent`, `isNewDevice`
 
 #### Guards:
 
-- **`jwt-auth.guard.ts`** - Protege rutas que requieren autenticaciÃn
+- **`jwt-auth.guard.ts`** - Protege rutas que requieren autenticaciÃ³n
 - **`jwt-refresh.guard.ts`** - Protege ruta de refresh token
 - **`roles.guard.ts`** - Protege rutas por rol (VOTER, ADMIN, SUPER_ADMIN)
 
@@ -342,400 +338,395 @@ frontend/
 
 ### 2. **Elections Module** (`/modules/elections`)
 
-**Responsabilidad:** GestiÃn de elecciones.
+**Responsabilidad:** GestiÃ³n de elecciones.
 
 #### Archivos Principales:
 
 - **`elections.controller.ts`**
-
-  - `GET /elections` - Listar elecciones (filtradas por rol)
-  - `GET /elections/:id` - Obtener elecciÃn por ID
-  - `POST /elections` - Crear elecciÃn (solo ADMIN)
-  - `PATCH /elections/:id` - Actualizar elecciÃn (solo ADMIN)
-  - `DELETE /elections/:id` - Eliminar elecciÃn (solo ADMIN)
+- `GET /elections` - Listar elecciones (filtradas por rol)
+- `GET /elections/:id` - Obtener elecciÃ³n por ID
+- `POST /elections` - Crear elecciÃ³n (solo ADMIN)
+- `PATCH /elections/:id` - Actualizar elecciÃ³n (solo ADMIN)
+- `DELETE /elections/:id` - Eliminar elecciÃ³n (solo ADMIN)
 - **`elections.service.ts`**
-
-  - `create()` - Crear nueva elecciÃn
-  - `findAll()` - Listar elecciones (con filtros por estado y rol)
-  - `findOne()` - Obtener elecciÃn con candidatos
-  - `update()` - Actualizar elecciÃn
-  - `remove()` - Soft delete de elecciÃn
-  - `activateElection()` - Activar elecciÃn manualmente
-  - `closeElection()` - Cerrar elecciÃn manualmente
+- `create()` - Crear nueva elecciÃ³n
+- `findAll()` - Listar elecciones (con filtros por estado y rol)
+- `findOne()` - Obtener elecciÃ³n con candidatos
+- `update()` - Actualizar elecciÃ³n
+- `remove()` - Soft delete de elecciÃ³n
+- `activateElection()` - Activar elecciÃ³n manualmente
+- `closeElection()` - Cerrar elecciÃ³n manualmente
 - **`elections-scheduler.service.ts`**
-
-  - `@Cron('*/5 * * * *')` - Cada 5 minutos:
-    - Activa elecciones que llegaron a `startDate`
-    - Cierra elecciones que llegaron a `endDate`
+- `@Cron('*/5 * * * *')` - Cada 5 minutos:
+- Activa elecciones que llegaron a `startDate`
+- Cierra elecciones que llegaron a `endDate`
 
 #### Entidades:
 
 - **`election.entity.ts`**
-  - Estados: `DRAFT`, `ACTIVE`, `CLOSED`, `COMPLETED`
-  - Campos: `title`, `description`, `startDate`, `endDate`, `status`, `allowMultipleVotes`
-  - Relaciones: `OneToMany` con `Candidate` y `Vote`
+- Estados: `DRAFT`, `ACTIVE`, `CLOSED`, `COMPLETED`
+- Campos: `title`, `description`, `startDate`, `endDate`, `status`, `allowMultipleVotes`
+- Relaciones: `OneToMany` con `Candidate` y `Vote`
 
 ---
 
 ### 3. **Candidates Module** (`/modules/candidates`)
 
-**Responsabilidad:** GestiÃn de candidatos.
+**Responsabilidad:** GestiÃ³n de candidatos.
 
 #### Archivos Principales:
 
 - **`candidates.controller.ts`**
-
-  - `GET /candidates` - Listar candidatos
-  - `GET /candidates/:id` - Obtener candidato por ID
-  - `GET /candidates/election/:electionId` - Candidatos de una elecciÃn
-  - `GET /candidates/results/:electionId` - Resultados de candidatos
-  - `POST /candidates` - Crear candidato (solo ADMIN)
-  - `PATCH /candidates/:id` - Actualizar candidato (solo ADMIN)
-  - `DELETE /candidates/:id` - Eliminar candidato (solo ADMIN)
+- `GET /candidates` - Listar candidatos
+- `GET /candidates/:id` - Obtener candidato por ID
+- `GET /candidates/election/:electionId` - Candidatos de una elecciÃ³n
+- `GET /candidates/results/:electionId` - Resultados de candidatos
+- `POST /candidates` - Crear candidato (solo ADMIN)
+- `PATCH /candidates/:id` - Actualizar candidato (solo ADMIN)
+- `DELETE /candidates/:id` - Eliminar candidato (solo ADMIN)
 - **`candidates.service.ts`**
-
-  - `create()` - Crear candidato
-  - `findAll()` - Listar candidatos
-  - `findByElection()` - Candidatos de una elecciÃn
-  - `getResults()` - Obtener resultados con votos y porcentajes
-  - `update()` - Actualizar candidato
-  - `remove()` - Soft delete de candidato
+- `create()` - Crear candidato
+- `findAll()` - Listar candidatos
+- `findByElection()` - Candidatos de una elecciÃ³n
+- `getResults()` - Obtener resultados con votos y porcentajes
+- `update()` - Actualizar candidato
+- `remove()` - Soft delete de candidato
 
 #### Entidades:
 
 - **`candidate.entity.ts`**
-  - Campos: `name`, `description`, `party`, `photoUrl`, `isActive`
-  - Relaciones: `ManyToOne` con `Election`, `OneToMany` con `Vote`
+- Campos: `name`, `description`, `party`, `photoUrl`, `isActive`
+- Relaciones: `ManyToOne` con `Election`, `OneToMany` con `Vote`
 
 ---
 
 ### 4. **Votes Module** (`/modules/votes`)
 
-**Responsabilidad:** GestiÃn de votos.
+**Responsabilidad:** GestiÃ³n de votos.
 
 #### Archivos Principales:
 
 - **`votes.controller.ts`**
-
-  - `POST /votes` - Emitir voto
-  - `GET /votes/history` - Historial de votos del usuario
-  - `GET /votes/verify/:voteHash` - Verificar voto por hash
-  - `GET /votes/check/:electionId` - Verificar si ya votÃ
+- `POST /votes` - Emitir voto
+- `GET /votes/history` - Historial de votos del usuario
+- `GET /votes/verify/:voteHash` - Verificar voto por hash
+- `GET /votes/check/:electionId` - Verificar si ya votÃ³
 - **`votes.service.ts`**
-
-  - `castVote()` - Emitir voto con encriptaciÃn
-  - `getVoteHistory()` - Historial de votos del usuario
-  - `verifyVote()` - Verificar integridad del voto
-  - `hasUserVoted()` - Verificar si el usuario ya votÃ
-  - `generateVoteHash()` - Generar hash Ãºnico del voto
+- `castVote()` - Emitir voto con encriptaciÃ³n
+- `getVoteHistory()` - Historial de votos del usuario
+- `verifyVote()` - Verificar integridad del voto
+- `hasUserVoted()` - Verificar si el usuario ya votÃ³
+- `generateVoteHash()` - Generar hash Ãºnico del voto
 
 #### Entidades:
 
 - **`vote.entity.ts`**
-  - Campos: `voteHash`, `encryptedVote`, `timestamp`, `ipAddress`, `isValid`
-  - Relaciones: `ManyToOne` con `User`, `Election`, `Candidate`
+- Campos: `voteHash`, `encryptedVote`, `timestamp`, `ipAddress`, `isValid`
+- Relaciones: `ManyToOne` con `User`, `Election`, `Candidate`
 
 ---
 
 ### 5. **Users Module** (`/modules/users`)
 
-**Responsabilidad:** GestiÃn de usuarios.
+**Responsabilidad:** GestiÃ³n de usuarios.
 
 #### Archivos Principales:
 
 - **`users.controller.ts`**
-
-  - `GET /users` - Listar usuarios (solo ADMIN)
-  - `GET /users/:id` - Obtener usuario por ID
-  - `PATCH /users/:id` - Actualizar perfil
-  - `DELETE /users/:id` - Eliminar usuario (solo ADMIN)
+- `GET /users` - Listar usuarios (solo ADMIN)
+- `GET /users/:id` - Obtener usuario por ID
+- `PATCH /users/:id` - Actualizar perfil
+- `DELETE /users/:id` - Eliminar usuario (solo ADMIN)
 - **`users.service.ts`**
-
-  - `create()` - Crear usuario
-  - `findAll()` - Listar usuarios
-  - `findOne()` - Obtener usuario por ID
-  - `findByEmail()` - Buscar usuario por email
-  - `update()` - Actualizar usuario
-  - `remove()` - Soft delete de usuario
+- `create()` - Crear usuario
+- `findAll()` - Listar usuarios
+- `findOne()` - Obtener usuario por ID
+- `findByEmail()` - Buscar usuario por email
+- `update()` - Actualizar usuario
+- `remove()` - Soft delete de usuario
 
 #### Entidades:
 
 - **`user.entity.ts`**
-  - Campos: `email`, `password`, `firstName`, `lastName`, `dpi`, `role`, `isActive`
-  - Relaciones: `OneToMany` con `Vote`, `TwoFactorCode`, `AuditLog`
+- Campos: `email`, `password`, `firstName`, `lastName`, `dpi`, `role`, `isActive`
+- Relaciones: `OneToMany` con `Vote`, `TwoFactorCode`, `AuditLog`
 
 ---
 
 ### 6. **Admin Module** (`/modules/admin`)
 
-**Responsabilidad:** Panel de administraciÃn y estadÃ­sticas.
+**Responsabilidad:** Panel de administraciÃ³n y estadÃ­sticas.
 
 #### Archivos Principales:
 
 - **`admin.controller.ts`**
-
-  - `GET /admin/dashboard/stats` - EstadÃsticas generales
-  - `GET /admin/dashboard/activity` - Actividad reciente
-  - `GET /admin/dashboard/trends` - Tendencias de votos
-  - `GET /admin/elections/:id/results` - Resultados detallados
-  - `GET /admin/votes/history` - Historial completo de votos
+- `GET /admin/dashboard/stats` - EstadÃ­sticas generales
+- `GET /admin/dashboard/activity` - Actividad reciente
+- `GET /admin/dashboard/trends` - Tendencias de votos
+- `GET /admin/elections/:id/results` - Resultados detallados
+- `GET /admin/votes/history` - Historial completo de votos
 - **`admin.service.ts`**
-
-  - `getDashboardStats()` - EstadÃsticas del dashboard
-  - `getRecentActivity()` - Actividad reciente
-  - `getVotingTrends()` - Tendencias de votaciÃn
-  - `getDetailedResults()` - Resultados con demografÃa
-  - `getVotesHistory()` - Historial completo con filtros
+- `getDashboardStats()` - EstadÃ­sticas del dashboard
+- `getRecentActivity()` - Actividad reciente
+- `getVotingTrends()` - Tendencias de votaciÃ³n
+- `getDetailedResults()` - Resultados con demografÃ­a
+- `getVotesHistory()` - Historial completo con filtros
 
 ---
 
 ### 7. **Audit Module** (`/modules/audit`)
 
-**Responsabilidad:** Registro de auditorÃa de acciones.
+**Responsabilidad:** Registro de auditorÃ­a de acciones.
 
 #### Archivos Principales:
 
 - **`audit.service.ts`**
-  - `log()` - Registrar acciÃn en la base de datos
-  - `logLogin()` - Registrar login
-  - `logVote()` - Registrar voto
-  - `logAdminAction()` - Registrar acciÃn de admin
+- `log()` - Registrar acciÃ³n en la base de datos
+- `logLogin()` - Registrar login
+- `logVote()` - Registrar voto
+- `logAdminAction()` - Registrar acciÃ³n de admin
 
 #### Entidades:
 
 - **`audit-log.entity.ts`**
-  - Campos: `action`, `userId`, `ipAddress`, `userAgent`, `metadata`, `timestamp`
+- Campos: `action`, `userId`, `ipAddress`, `userAgent`, `metadata`, `timestamp`
 
 ---
 
-## Ÿ¨ PÃ¡ginas del Frontend - Detalle
+## PÃ¡ginas del Frontend - Detalle
 
-### Ÿ”¹ PÃ¡ginas de Usuario
+### PÃ¡ginas de Usuario
 
 #### 1. **Dashboard** (`/pages/Dashboard.tsx`)
 
 - **Ruta:** `/dashboard`
-- **DescripciÃn:** Panel principal del usuario
+- **DescripciÃ³n:** Panel principal del usuario
 - **Funcionalidades:**
-  - Ver elecciones activas
-  - Ver elecciones prÃximas
-  - Ver elecciones completadas
-  - BotÃn "Votar Ahora" para elecciones activas
-  - Badge "Ya has votado" si ya votÃ
-  - Ver resultados de elecciones cerradas
+- Ver elecciones activas
+- Ver elecciones prÃ³ximas
+- Ver elecciones completadas
+- BotÃ³n "Votar Ahora" para elecciones activas
+- Badge "Ya has votado" si ya votÃ³
+- Ver resultados de elecciones cerradas
 
 #### 2. **VotingPage** (`/pages/VotingPage.tsx`)
 
 - **Ruta:** `/vote/:electionId`
-- **DescripciÃn:** PÃ¡gina para emitir voto
+- **DescripciÃ³n:** PÃ¡gina para emitir voto
 - **Funcionalidades:**
-  - Ver informaciÃn de la elecciÃ³n
-  - Ver lista de candidatos con fotos
-  - Seleccionar candidato
-  - Confirmar voto con modal
-  - EncriptaciÃn del voto antes de enviar
+- Ver informaciÃ³n de la elecciÃ³n
+- Ver lista de candidatos con fotos
+- Seleccionar candidato
+- Confirmar voto con modal
+- EncriptaciÃ³n del voto antes de enviar
 
 #### 3. **VotingHistory** (`/pages/VotingHistory.tsx`)
 
 - **Ruta:** `/voting-history`
-- **DescripciÃn:** Historial de votos del usuario
+- **DescripciÃ³n:** Historial de votos del usuario
 - **Funcionalidades:**
-  - Ver lista de votos emitidos
-  - Ver detalles de cada voto (hash, fecha, elecciÃn)
-  - Exportar historial a PDF
-  - Ver recibo individual de voto (modal)
-  - Descargar recibo en PDF
+- Ver lista de votos emitidos
+- Ver detalles de cada voto (hash, fecha, elecciÃ³n)
+- Exportar historial a PDF
+- Ver recibo individual de voto (modal)
+- Descargar recibo en PDF
 
 #### 4. **ResultsListPage** (`/pages/ResultsListPage.tsx`)
 
 - **Ruta:** `/results`
-- **DescripciÃn:** Lista de elecciones con resultados disponibles
+- **DescripciÃ³n:** Lista de elecciones con resultados disponibles
 - **Funcionalidades:**
-  - Ver elecciones cerradas o completadas
-  - Ver informaciÃn bÃ¡sica de cada elecciÃ³n
-  - BotÃn para ver resultados detallados
+- Ver elecciones cerradas o completadas
+- Ver informaciÃ³n bÃ¡sica de cada elecciÃ³n
+- BotÃ³n para ver resultados detallados
 
 #### 5. **ResultsPage** (`/pages/ResultsPage.tsx`)
 
 - **Ruta:** `/results/:electionId`
-- **DescripciÃn:** Resultados detallados de una elecciÃ³n
+- **DescripciÃ³n:** Resultados detallados de una elecciÃ³n
 - **Funcionalidades:**
-  - Ver ganador destacado
-  - Ver grÃ¡fico de resultados
-  - Ver tabla de candidatos con votos y porcentajes
-  - Ver total de votos
+- Ver ganador destacado
+- Ver grÃ¡fico de resultados
+- Ver tabla de candidatos con votos y porcentajes
+- Ver total de votos
 
 #### 6. **ProfilePage** (`/pages/ProfilePage.tsx`)
 
 - **Ruta:** `/profile`
-- **DescripciÃn:** Perfil del usuario
+- **DescripciÃ³n:** Perfil del usuario
 - **Funcionalidades:**
-  - Ver informaciÃn personal
-  - Editar nombre, apellido, telÃfono
-  - Ver Ãºltimo login
-  - Ver rol
+- Ver informaciÃ³n personal
+- Editar nombre, apellido, telÃ©fono
+- Ver Ãºltimo login
+- Ver rol
 
 #### 7. **SettingsPage** (`/pages/SettingsPage.tsx`)
 
 - **Ruta:** `/settings`
-- **DescripciÃn:** ConfiguraciÃ³n de la cuenta
+- **DescripciÃ³n:** ConfiguraciÃ³n de la cuenta
 - **Funcionalidades:**
-  - Cambiar contraseÃ±a
-  - Configurar notificaciones
-  - Configurar privacidad
+- Cambiar contraseÃ±a
+- Configurar notificaciones
+- Configurar privacidad
 
 #### 8. **HelpPage** (`/pages/HelpPage.tsx`)
 
 - **Ruta:** `/help`
-- **DescripciÃn:** PÃ¡gina de ayuda
+- **DescripciÃ³n:** PÃ¡gina de ayuda
 - **Funcionalidades:**
-  - Preguntas frecuentes
-  - GuÃas de uso
-  - Contacto de soporte
+- Preguntas frecuentes
+- GuÃ­as de uso
+- Contacto de soporte
 
 ---
 
-### Ÿ”¹ PÃ¡ginas de Administrador
+### PÃ¡ginas de Administrador
 
 #### 1. **AdminDashboard** (`/pages/AdminDashboard.tsx`)
 
 - **Ruta:** `/admin/dashboard`
-- **DescripciÃn:** Panel principal del administrador
+- **DescripciÃ³n:** Panel principal del administrador
 - **Funcionalidades:**
-  - Ver estadÃsticas generales (usuarios, elecciones, votos)
-  - Ver actividad reciente
-  - Ver tendencias de votaciÃn (grÃ¡fico)
-  - Acceso rÃ¡pido a funciones de admin
+- Ver estadÃ­sticas generales (usuarios, elecciones, votos)
+- Ver actividad reciente
+- Ver tendencias de votaciÃ³n (grÃ¡fico)
+- Acceso rÃ¡pido a funciones de admin
 
 #### 2. **CreateElection** (`/pages/admin/CreateElection.tsx`)
 
 - **Ruta:** `/admin/elections/create` y `/admin/elections/edit/:id`
-- **DescripciÃn:** Crear o editar elecciÃ³n
+- **DescripciÃ³n:** Crear o editar elecciÃ³n
 - **Funcionalidades:**
-  - Formulario de elecciÃn (tÃ­tulo, descripciÃ³n, fechas)
-  - Agregar/editar/eliminar candidatos
-  - Vista previa de candidatos
-  - ValidaciÃn de fechas
-  - Guardar como borrador o activar
+- Formulario de elecciÃ³n (tÃ­tulo, descripciÃ³n, fechas)
+- Agregar/editar/eliminar candidatos
+- Vista previa de candidatos
+- ValidaciÃ³n de fechas
+- Guardar como borrador o activar
 
 #### 3. **ManageCandidates** (`/pages/admin/ManageCandidates.tsx`)
 
 - **Ruta:** `/admin/candidates`
-- **DescripciÃn:** Gestionar candidatos
+- **DescripciÃ³n:** Gestionar candidatos
 - **Funcionalidades:**
-  - Ver lista de candidatos
-  - Filtrar por elecciÃn
-  - Crear nuevo candidato
-  - Editar candidato existente
-  - Eliminar candidato
-  - Activar/desactivar candidato
+- Ver lista de candidatos
+- Filtrar por elecciÃ³n
+- Crear nuevo candidato
+- Editar candidato existente
+- Eliminar candidato
+- Activar/desactivar candidato
 
 #### 4. **ManageVoters** (`/pages/admin/ManageVoters.tsx`)
 
 - **Ruta:** `/admin/voters`
-- **DescripciÃn:** Gestionar votantes
+- **DescripciÃ³n:** Gestionar votantes
 - **Funcionalidades:**
-  - Ver lista de usuarios
-  - Filtrar por rol
-  - Buscar por nombre o email
-  - Ver detalles de usuario
-  - Activar/desactivar usuario
-  - Cambiar rol de usuario
+- Ver lista de usuarios
+- Filtrar por rol
+- Buscar por nombre o email
+- Ver detalles de usuario
+- Activar/desactivar usuario
+- Cambiar rol de usuario
 
 #### 5. **ElectionResults** (`/pages/admin/ElectionResults.tsx`)
 
 - **Ruta:** `/admin/results/:electionId`
-- **DescripciÃn:** Resultados detallados de elecciÃ³n (admin)
+- **DescripciÃ³n:** Resultados detallados de elecciÃ³n (admin)
 - **Funcionalidades:**
-  - Ver resultados con demografÃa
-  - Ver grÃ¡ficos avanzados
-  - Exportar resultados a PDF
-  - Exportar resultados a CSV
-  - Ver estadÃsticas detalladas
+- Ver resultados con demografÃ­a
+- Ver grÃ¡ficos avanzados
+- Exportar resultados a PDF
+- Exportar resultados a CSV
+- Ver estadÃ­sticas detalladas
 
 #### 6. **AdminVotesHistory** (`/pages/admin/AdminVotesHistory.tsx`)
 
 - **Ruta:** `/admin/votes-history`
-- **DescripciÃn:** Historial completo de votos (admin)
+- **DescripciÃ³n:** Historial completo de votos (admin)
 - **Funcionalidades:**
-  - Ver todos los votos del sistema
-  - Filtrar por elecciÃn, usuario, fecha
-  - Ver votos vÃ¡lidos e invÃ¡lidos
-  - Exportar historial a PDF
-  - Exportar historial a CSV
-  - Ver detalles de cada voto
+- Ver todos los votos del sistema
+- Filtrar por elecciÃ³n, usuario, fecha
+- Ver votos vÃ¡lidos e invÃ¡lidos
+- Exportar historial a PDF
+- Exportar historial a CSV
+- Ver detalles de cada voto
 
 ---
 
-## Ÿ” Seguridad
+## Seguridad
 
-### AutenticaciÃn y AutorizaciÃ³n
+### AutenticaciÃ³n y AutorizaciÃ³n
 
 1. **JWT (JSON Web Tokens)**
 
-   - Access Token: 15 minutos de expiraciÃn
-   - Refresh Token: 7 dÃas de expiraciÃ³n
-   - Almacenados en `sessionStorage` (frontend)
+- Access Token: 15 minutos de expiraciÃ³n
+- Refresh Token: 7 dÃ­as de expiraciÃ³n
+- Almacenados en `sessionStorage` (frontend)
+
 2. **Two-Factor Authentication (2FA)**
 
-   - CÃdigo de 6 dÃ­gitos enviado por email
-   - ExpiraciÃn: 10 minutos
-   - DetecciÃn de nuevo dispositivo
-   - NotificaciÃn por email en login desde nuevo dispositivo
+- CÃ³digo de 6 dÃ­gitos enviado por email
+- ExpiraciÃ³n: 10 minutos
+- DetecciÃ³n de nuevo dispositivo
+- NotificaciÃ³n por email en login desde nuevo dispositivo
+
 3. **Roles y Permisos**
 
-   - `VOTER`: Usuario regular (puede votar)
-   - `ADMIN`: Administrador (gestiona elecciones)
-   - `SUPER_ADMIN`: Super administrador (gestiona todo)
+- `VOTER`: Usuario regular (puede votar)
+- `ADMIN`: Administrador (gestiona elecciones)
+- `SUPER_ADMIN`: Super administrador (gestiona todo)
+
 4. **Guards**
 
-   - `JwtAuthGuard`: Protege rutas autenticadas
-   - `RolesGuard`: Protege rutas por rol
-   - `JwtRefreshGuard`: Protege ruta de refresh
+- `JwtAuthGuard`: Protege rutas autenticadas
+- `RolesGuard`: Protege rutas por rol
+- `JwtRefreshGuard`: Protege ruta de refresh
 
-### EncriptaciÃn
+### EncriptaciÃ³n
 
 1. **Votos**
 
-   - EncriptaciÃn AES-256-GCM
-   - Hash SHA-256 para verificaciÃn
-   - Firma digital para integridad
+- EncriptaciÃ³n AES-256-GCM
+- Hash SHA-256 para verificaciÃ³n
+- Firma digital para integridad
+
 2. **ContraseÃ±as**
 
-   - Bcrypt con salt de 10 rounds
-   - Nunca se almacenan en texto plano
+- Bcrypt con salt de 10 rounds
+- Nunca se almacenan en texto plano
 
 ### Seguridad de Red
 
 1. **CORS**
 
-   - Configurado para permitir solo dominios autorizados
-   - Headers permitidos: `Authorization`, `Content-Type`, etc.
+- Configurado para permitir solo dominios autorizados
+- Headers permitidos: `Authorization`, `Content-Type`, etc.
+
 2. **Helmet**
 
-   - Security headers automÃ¡ticos
-   - `X-Frame-Options: DENY`
-   - `X-Content-Type-Options: nosniff`
-   - `X-XSS-Protection: 1; mode=block`
+- Security headers automÃ¡ticos
+- `X-Frame-Options: DENY`
+- `X-Content-Type-Options: nosniff`
+- `X-XSS-Protection: 1; mode=block`
+
 3. **Rate Limiting**
 
-   - 100 requests por minuto por IP
-   - ProtecciÃn contra ataques de fuerza bruta
+- 100 requests por minuto por IP
+- ProtecciÃ³n contra ataques de fuerza bruta
 
-### AuditorÃa
+### AuditorÃ­a
 
-- Todas las acciones crÃticas se registran en `audit_logs`
-- InformaciÃn registrada:
-  - Usuario
-  - AcciÃn
-  - IP Address
-  - User Agent
-  - Timestamp
-  - Metadata adicional
+- Todas las acciones crÃ­ticas se registran en `audit_logs`
+- InformaciÃ³n registrada:
+- Usuario
+- AcciÃ³n
+- IP Address
+- User Agent
+- Timestamp
+- Metadata adicional
 
 ---
 
-## Ÿ—„ï¸ Base de Datos
+## Base de Datos
 
 ### Entidades Principales
 
@@ -831,7 +822,7 @@ frontend/
 
 ---
 
-## Ÿš€ Deployment
+## Deployment
 
 ### Backend (Railway)
 
@@ -883,20 +874,20 @@ RATE_LIMIT_MAX=100
 VITE_API_URL=https://backend-domain.railway.app/api/v1
 ```
 
-2. **ConfiguraciÃn de Vercel:**
+2. **ConfiguraciÃ³n de Vercel:**
 
 ```json
 {
-  "buildCommand": "npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm ci",
-  "framework": "vite"
+ "buildCommand": "npm run build",
+ "outputDirectory": "dist",
+ "installCommand": "npm ci",
+ "framework": "vite"
 }
 ```
 
 ---
 
-## Ÿ”„ CI/CD (GitHub Actions)
+## CI/CD (GitHub Actions)
 
 ### Security Scan Workflow
 
@@ -906,21 +897,25 @@ VITE_API_URL=https://backend-domain.railway.app/api/v1
 
 1. **Dependency Vulnerability Scan**
 
-   - `npm audit` para detectar vulnerabilidades
-   - Snyk para anÃ¡lisis de dependencias
+- `npm audit` para detectar vulnerabilidades
+- Snyk para anÃ¡lisis de dependencias
+
 2. **Code Quality & Security Linting**
 
-   - ESLint con reglas de seguridad
-   - TypeScript compiler check
+- ESLint con reglas de seguridad
+- TypeScript compiler check
+
 3. **Secrets & Credentials Scan**
 
-   - TruffleHog para detectar secretos en cÃdigo
+- TruffleHog para detectar secretos en cÃ³digo
+
 4. **Docker Container Security Scan**
 
-   - Trivy para escanear vulnerabilidades en imÃ¡genes Docker
+- Trivy para escanear vulnerabilidades en imÃ¡genes Docker
+
 5. **CodeQL SAST Analysis**
 
-   - AnÃ¡lisis estÃ¡tico de cÃdigo para detectar vulnerabilidades
+- AnÃ¡lisis estÃ¡tico de cÃ³digo para detectar vulnerabilidades
 
 **Triggers:**
 
@@ -930,25 +925,25 @@ VITE_API_URL=https://backend-domain.railway.app/api/v1
 
 ---
 
-## Ÿ“¦ Dependencias Principales
+## Dependencias Principales
 
 ### Backend
 
 ```json
 {
-  "@nestjs/common": "^10.0.0",
-  "@nestjs/core": "^10.0.0",
-  "@nestjs/jwt": "^10.0.0",
-  "@nestjs/passport": "^10.0.0",
-  "@nestjs/schedule": "^4.0.0",
-  "@nestjs/typeorm": "^10.0.0",
-  "bcrypt": "^5.1.0",
-  "class-validator": "^0.14.0",
-  "class-transformer": "^0.5.1",
-  "passport-jwt": "^4.0.1",
-  "pg": "^8.11.0",
-  "resend": "^3.0.0",
-  "typeorm": "^0.3.17"
+ "@nestjs/common": "^10.0.0",
+ "@nestjs/core": "^10.0.0",
+ "@nestjs/jwt": "^10.0.0",
+ "@nestjs/passport": "^10.0.0",
+ "@nestjs/schedule": "^4.0.0",
+ "@nestjs/typeorm": "^10.0.0",
+ "bcrypt": "^5.1.0",
+ "class-validator": "^0.14.0",
+ "class-transformer": "^0.5.1",
+ "passport-jwt": "^4.0.1",
+ "pg": "^8.11.0",
+ "resend": "^3.0.0",
+ "typeorm": "^0.3.17"
 }
 ```
 
@@ -956,19 +951,19 @@ VITE_API_URL=https://backend-domain.railway.app/api/v1
 
 ```json
 {
-  "react": "^18.2.0",
-  "react-dom": "^18.2.0",
-  "react-router-dom": "^6.20.0",
-  "zustand": "^4.4.7",
-  "axios": "^1.6.2",
-  "jspdf": "^2.5.1",
-  "jspdf-autotable": "^3.8.2"
+ "react": "^18.2.0",
+ "react-dom": "^18.2.0",
+ "react-router-dom": "^6.20.0",
+ "zustand": "^4.4.7",
+ "axios": "^1.6.2",
+ "jspdf": "^2.5.1",
+ "jspdf-autotable": "^3.8.2"
 }
 ```
 
 ---
 
-## Ÿ§ª Testing
+## Testing
 
 ### Backend
 
@@ -995,7 +990,7 @@ npm run test:coverage
 
 ---
 
-## Ÿ“ Scripts Ãštiles
+## Scripts Ãštiles
 
 ### Backend
 
@@ -1003,7 +998,7 @@ npm run test:coverage
 # Desarrollo
 npm run start:dev
 
-# ProducciÃn
+# ProducciÃ³n
 npm run build
 npm run start:prod
 
@@ -1034,7 +1029,7 @@ npm run lint
 
 ---
 
-## Ÿ”§ ConfiguraciÃ³n Local
+## ConfiguraciÃ³n Local
 
 ### 1. Clonar Repositorio
 
@@ -1076,36 +1071,3 @@ npm run migration:run
 # Ejecutar seeds (opcional)
 npm run seed
 ```
-
----
-
-## Ÿ“ Contacto y Soporte
-
-**Desarrollador:** Christian Barrios
-**Email:** barriosc31@gmail.com
-**Universidad:** Universidad Francisco MarroquÃn (UFM)
-**Curso:** Seguridad InformÃ¡tica
-
----
-
-## Ÿ“„ Licencia
-
-Este proyecto es de cÃdigo cerrado y estÃ¡ protegido por derechos de autor.
-Uso exclusivo para fines acadÃmicos en UFM.
-
----
-
-## Ÿ¯ Roadmap Futuro
-
-- [X] Implementar votaciÃn con blockchain
-- [ ] Agregar soporte para mÃºltiples idiomas (i18n)
-- [X] Implementar notificaciones push
-- [X] Agregar anÃ¡lisis de datos con IA
-- [ ] Implementar sistema de reportes avanzados
-- [ ] Agregar soporte para votaciÃn delegada
-- [X] Implementar sistema de verificaciÃn biomÃ©trica
-
----
-
-**Ãltima actualizaciÃ³n:** Noviembre 2025
-**VersiÃn:** 1.0.0
