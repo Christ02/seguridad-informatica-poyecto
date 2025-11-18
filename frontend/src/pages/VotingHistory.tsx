@@ -5,8 +5,10 @@
 
 import { useState, useEffect } from 'react';
 import { Sidebar } from '@components/Sidebar';
+import { VoteReceiptModal } from '@components/VoteReceiptModal';
 import { useToast } from '@hooks/useToast';
 import { votesApi } from '@services/votes.api';
+import { generateVotingHistoryPDF, generateVoteReceiptPDF } from '@utils/pdfGenerator';
 import type { VoteHistory as VoteHistoryItem } from '@services/votes.api';
 import './VotingHistory.css';
 
@@ -18,6 +20,7 @@ export function VotingHistory() {
   const [voteRecords, setVoteRecords] = useState<VoteHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedVote, setSelectedVote] = useState<VoteHistoryItem | null>(null);
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -72,11 +75,35 @@ export function VotingHistory() {
   );
 
   const handleExport = () => {
-    showToast('info', 'Función de exportación en desarrollo');
+    try {
+      if (filteredRecords.length === 0) {
+        showToast('warning', 'No hay registros para exportar');
+        return;
+      }
+      generateVotingHistoryPDF(filteredRecords);
+      showToast('success', 'PDF generado exitosamente');
+    } catch (error) {
+      console.error('Error generando PDF:', error);
+      showToast('error', 'Error al generar el PDF');
+    }
   };
 
   const handleViewDetails = (record: VoteHistoryItem) => {
-    showToast('info', `Recibo: ${record.voteHash.substring(0, 16)}...`);
+    setSelectedVote(record);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedVote(null);
+  };
+
+  const handleDownloadReceipt = (vote: VoteHistoryItem) => {
+    try {
+      generateVoteReceiptPDF(vote);
+      showToast('success', 'Recibo descargado exitosamente');
+    } catch (error) {
+      console.error('Error generando recibo:', error);
+      showToast('error', 'Error al generar el recibo');
+    }
   };
 
   if (isLoading) {
@@ -304,6 +331,11 @@ export function VotingHistory() {
           )}
         </div>
       </main>
+
+      {/* Modal de Recibo */}
+      {selectedVote && (
+        <VoteReceiptModal vote={selectedVote} onClose={handleCloseModal} />
+      )}
     </div>
   );
 }
