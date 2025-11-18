@@ -112,7 +112,7 @@ export class ElectionsService {
    */
   async findOne(id: string, userRole?: string): Promise<Election> {
     const election = await this.electionRepository.findOne({
-      where: { id, isActive: true },
+      where: { id },
       relations: ['candidates'],
     });
 
@@ -124,6 +124,7 @@ export class ElectionsService {
     if (userRole && userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
       if (
         election.status !== ElectionStatus.ACTIVE &&
+        election.status !== ElectionStatus.CLOSED &&
         election.status !== ElectionStatus.COMPLETED
       ) {
         throw new ForbiddenException(
