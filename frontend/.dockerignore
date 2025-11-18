@@ -1,42 +1,35 @@
-# Node modules
-node_modules/
-npm-debug.log*
+# Dependencies
+node_modules
+npm-debug.log
+yarn-error.log
 
-# Build outputs
-dist/
-build/
-.vite/
+# Build
+dist
+build
 
-# Environment variables (SEGURIDAD)
+# Git
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Environment
 .env
 .env.local
 .env.*.local
 
-# Tests
-coverage/
-.nyc_output/
+# Documentation
+README.md
+*.md
 
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
+# Testing
+coverage
+.nyc_output
 
-# Git
-.git/
-.gitignore
-
-# Temporary
-*.tmp
-*.temp
-.cache/
-
-# OS
+# Misc
 .DS_Store
 Thumbs.db
-
-# Docker
-Dockerfile
-.dockerignore
-docker-compose*.yml
-

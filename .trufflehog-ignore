@@ -1,0 +1,26 @@
+# TruffleHog Ignore File
+# Ignora falsos positivos y secretos conocidos que están seguros
+
+# API Keys en documentación (no son reales o están en variables de entorno)
+RESEND_API_KEY=re_VWu6DSi9_KGfXBucqph5zZ3njBq3p1Cnp
+re_VWu6DSi9_KGfXBucqph5zZ3njBq3p1Cnp
+
+# Ejemplos en documentación
+EMAIL_FROM=onboarding@resend.dev
+barriosc31@gmail.com
+
+# JWT Secrets (están en variables de entorno de Railway, no hardcoded)
+JWT_SECRET
+JWT_REFRESH_SECRET
+SEED_SECRET
+
+# Database credentials (están en Railway, no hardcoded)
+DATABASE_PASSWORD
+DATABASE_URL
+
+# Archivos de documentación y setup
+SETUP-2FA-MANUAL.md
+GUIA-PRESENTACION-2FA.md
+EJECUTAR-EN-RAILWAY.sql
+setup-2fa.sh
+

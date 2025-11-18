@@ -1,68 +1,41 @@
-# Multi-stage Dockerfile para seguridad
+# Multi-stage build para optimizar tamaño y seguridad
+FROM node:20-alpine AS builder
 
-# Stage 1: Development
-FROM node:20-alpine AS development
+# Metadata
+LABEL maintainer="Christian Barrios <barriosc31@gmail.com>"
+LABEL description="VoteSecure Frontend - Sistema de Votación Segura"
 
+# Establecer directorio de trabajo
 WORKDIR /app
 
-# Instalar dependencias de seguridad
-RUN apk add --no-cache git
-
-# Copiar package files
+# Copiar archivos de dependencias
 COPY package*.json ./
 
 # Instalar dependencias
-RUN npm ci
-
-# Copiar código fuente
-COPY . .
-
-# Exponer puerto
-EXPOSE 3000
-
-# Comando de desarrollo con hot-reload
-CMD ["npm", "run", "dev"]
-
-# Stage 2: Build
-FROM node:20-alpine AS build
-
-WORKDIR /app
-
-# Copiar package files
-COPY package*.json ./
-
-# Instalar dependencias de producción
 RUN npm ci --only=production && \
     npm cache clean --force
 
 # Copiar código fuente
 COPY . .
 
-# Build de producción
+# Build de la aplicación
 RUN npm run build
 
-# Stage 3: Production
-FROM nginx:alpine AS production
+# Stage 2: Production
+FROM nginx:alpine
 
-# Copiar configuración de Nginx con security headers
-COPY nginx.conf /etc/nginx/nginx.conf
+# Copiar archivos construidos
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copiar archivos estáticos desde build
-COPY --from=build /app/dist /usr/share/nginx/html
-
-# Usuario no-root para seguridad
-RUN chown -R nginx:nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget --no-verbose --tries=1 --spider http://localhost:80/ || exit 1
+# Copiar configuración de nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Exponer puerto
 EXPOSE 80
 
-# Usuario no-root
-USER nginx
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
 
+# Ejecutar nginx
 CMD ["nginx", "-g", "daemon off;"]
-
