@@ -13,6 +13,7 @@ export function ResultsListPage() {
   const navigate = useNavigate();
   const [elections, setElections] = useState<Election[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadElections();
@@ -21,14 +22,23 @@ export function ResultsListPage() {
   const loadElections = async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await electionsApi.getAll();
+      console.log('📊 Todas las elecciones:', data);
+      console.log('📊 Estados disponibles:', data.map(e => e.status));
+      
       // Filtrar solo elecciones CLOSED o COMPLETED
       const electionsWithResults = data.filter(
         (e) => e.status === 'CLOSED' || e.status === 'COMPLETED'
       );
+      console.log('📊 Elecciones con resultados:', electionsWithResults);
+      
       setElections(electionsWithResults);
-    } catch (error) {
-      console.error('Error loading elections:', error);
+    } catch (err: any) {
+      console.error('❌ Error loading elections:', err);
+      const errorMessage = err?.response?.data?.message || err?.message || 'Error al cargar los resultados';
+      setError(errorMessage);
+      console.error('Error details:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -73,6 +83,26 @@ export function ResultsListPage() {
           <div className="loading-state">
             <div className="spinner"></div>
             <p>Cargando elecciones...</p>
+          </div>
+        ) : error ? (
+          <div className="error-state">
+            <svg
+              width="80"
+              height="80"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+            >
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <h3>Error al cargar resultados</h3>
+            <p>{error}</p>
+            <button className="btn-retry" onClick={loadElections}>
+              Reintentar
+            </button>
           </div>
         ) : elections.length === 0 ? (
           <div className="empty-state">
