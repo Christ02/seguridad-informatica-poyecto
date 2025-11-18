@@ -8,7 +8,7 @@ import { Sidebar } from '@components/Sidebar';
 import { VoteReceiptModal } from '@components/VoteReceiptModal';
 import { useToast } from '@hooks/useToast';
 import { votesApi } from '@services/votes.api';
-import { generateVotingHistoryPDF, generateVoteReceiptPDF } from '@utils/pdfGenerator';
+import { generateVotingHistoryPDF } from '@utils/pdfGenerator';
 import type { VoteHistory as VoteHistoryItem } from '@services/votes.api';
 import './VotingHistory.css';
 
@@ -94,16 +94,6 @@ export function VotingHistory() {
 
   const handleCloseModal = () => {
     setSelectedVote(null);
-  };
-
-  const handleDownloadReceipt = (vote: VoteHistoryItem) => {
-    try {
-      generateVoteReceiptPDF(vote);
-      showToast('success', 'Recibo descargado exitosamente');
-    } catch (error) {
-      console.error('Error generando recibo:', error);
-      showToast('error', 'Error al generar el recibo');
-    }
   };
 
   if (isLoading) {

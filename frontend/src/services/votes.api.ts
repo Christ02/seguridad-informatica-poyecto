@@ -33,6 +33,7 @@ export interface VoteHistory {
   votedAt: string;
   isValid: boolean;
   status: 'contabilizado' | 'anulado' | 'emitido';
+  signature?: string; // Opcional - firma digital del voto
 }
 
 export interface VerifyVoteDto {
