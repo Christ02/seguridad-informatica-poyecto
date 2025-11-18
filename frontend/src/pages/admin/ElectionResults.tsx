@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@components/AdminLayout';
 import { electionsApi, type Election } from '@services/elections.api';
 import { candidatesApi, type Candidate } from '@services/candidates.api';
+import { generateElectionResultsPDF } from '@utils/adminPdfGenerator';
 import { useToast } from '@hooks/useToast';
 import { logger } from '@utils/logger';
 import '@styles/admin-shared.css';
@@ -67,9 +68,33 @@ export function ElectionResults() {
   const totalVotes = candidates.reduce((sum, c) => sum + (c.voteCount || 0), 0);
 
   const handleExportPDF = () => {
-    logger.info('Exporting results to PDF');
-    showToast('info', 'Exportando resultados a PDF...');
-    // TODO: Implementar exportación a PDF
+    try {
+      if (!selectedElection) {
+        showToast('warning', 'Selecciona una elección primero');
+        return;
+      }
+
+      if (candidates.length === 0) {
+        showToast('warning', 'No hay candidatos para exportar');
+        return;
+      }
+
+      logger.info('Exporting results to PDF');
+      
+      generateElectionResultsPDF(
+        selectedElection.title,
+        selectedElection.description,
+        selectedElection.startDate,
+        selectedElection.endDate,
+        candidates,
+        totalVotes
+      );
+      
+      showToast('success', 'Resultados exportados a PDF exitosamente');
+    } catch (error) {
+      logger.error('Error exporting to PDF', error);
+      showToast('error', 'Error al exportar a PDF');
+    }
   };
 
   const handleExportCSV = () => {

@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react';
 import { AdminLayout } from '@components/AdminLayout';
 import { adminApi } from '@services/admin.api';
 import type { VoteHistoryResponse, VoteHistoryItem } from '@services/admin.api';
+import { generateVotesHistoryPDF } from '@utils/adminPdfGenerator';
 import { useToast } from '@hooks/useToast';
 import { logger } from '@utils/logger';
 import '@styles/admin-shared.css';
@@ -77,19 +78,95 @@ export function AdminVotesHistory() {
     );
   });
 
+  const handleExportCSV = () => {
+    try {
+      if (filteredVotes.length === 0) {
+        showToast('warning', 'No hay votos para exportar');
+        return;
+      }
+
+      logger.info('Exporting votes to CSV');
+
+      // Crear CSV
+      const headers = ['Elección', 'Candidato', 'Votante', 'Email', 'Hash de Voto', 'Estado', 'Fecha'];
+      const rows = filteredVotes.map(vote => {
+        const date = new Date(vote.timestamp).toLocaleString('es-GT', {
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        return [
+          vote.electionTitle,
+          vote.candidateName,
+          vote.voterName,
+          vote.voterEmail,
+          vote.voteHash,
+          vote.isValid ? 'Válido' : 'Inválido',
+          date,
+        ];
+      });
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
+      ].join('\n');
+
+      // Descargar archivo
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `historial-votos-${Date.now()}.csv`;
+      link.click();
+
+      showToast('success', 'Historial exportado a CSV exitosamente');
+    } catch (error) {
+      logger.error('Error exporting to CSV', error);
+      showToast('error', 'Error al exportar a CSV');
+    }
+  };
+
+  const handleExportPDF = () => {
+    try {
+      if (filteredVotes.length === 0) {
+        showToast('warning', 'No hay votos para exportar');
+        return;
+      }
+
+      logger.info('Exporting votes to PDF');
+      generateVotesHistoryPDF(filteredVotes);
+      showToast('success', 'Historial exportado a PDF exitosamente');
+    } catch (error) {
+      logger.error('Error exporting to PDF', error);
+      showToast('error', 'Error al exportar a PDF');
+    }
+  };
+
   return (
     <AdminLayout
       title="Historial de Votaciones"
       subtitle="Consulta y analiza todas las votaciones registradas en el sistema"
       actions={
-        <button className="btn-primary">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
-          Exportar CSV
-      </button>
+        <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <button className="btn-secondary" onClick={handleExportCSV}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar CSV
+          </button>
+          <button className="btn-primary" onClick={handleExportPDF}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Exportar PDF
+          </button>
+        </div>
     }
   >
     {/* Filtros */}
