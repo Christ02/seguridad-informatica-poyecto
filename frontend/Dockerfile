@@ -11,8 +11,9 @@ WORKDIR /app
 # Copiar archivos de dependencias
 COPY package*.json ./
 
-# Instalar dependencias
-RUN npm ci --only=production && \
+# Instalar dependencias (incluyendo devDependencies para el build)
+# Ignorar scripts de prepare (husky) que no son necesarios en CI
+RUN npm ci --ignore-scripts && \
     npm cache clean --force
 
 # Copiar código fuente
