@@ -62,7 +62,6 @@ export class ElectionsService {
     const query = this.electionRepository
       .createQueryBuilder('election')
       .leftJoinAndSelect('election.candidates', 'candidates')
-      .where('election.isActive = :isActive', { isActive: true })
       .orderBy('election.createdAt', 'DESC');
 
     // Si no es admin, solo mostrar elecciones activas, cerradas o completadas
@@ -70,6 +69,9 @@ export class ElectionsService {
       query.andWhere('election.status IN (:...statuses)', {
         statuses: [ElectionStatus.ACTIVE, ElectionStatus.CLOSED, ElectionStatus.COMPLETED],
       });
+    } else {
+      // Admins ven todo excepto las eliminadas (soft delete)
+      query.where('election.deletedAt IS NULL');
     }
 
     const elections = await query.getMany();
