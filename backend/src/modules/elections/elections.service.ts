@@ -45,7 +45,9 @@ export class ElectionsService {
       );
     }
 
-    if (end <= now) {
+    // Permitir un margen de 1 minuto para evitar problemas de sincronización
+    const oneMinuteAgo = new Date(now.getTime() - 60000);
+    if (end <= oneMinuteAgo) {
       console.error('[ElectionsService] End date must be in the future');
       throw new BadRequestException(
         'La fecha de fin debe ser posterior a la fecha actual',
