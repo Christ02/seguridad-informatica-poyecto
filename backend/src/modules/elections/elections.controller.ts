@@ -34,7 +34,11 @@ export class ElectionsController {
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   async create(@Body() createElectionDto: CreateElectionDto) {
-    return await this.electionsService.create(createElectionDto);
+    console.log('[ElectionsController] Create election called');
+    console.log('[ElectionsController] DTO received:', createElectionDto);
+    const result = await this.electionsService.create(createElectionDto);
+    console.log('[ElectionsController] Election created:', result.id);
+    return result;
   }
 
   /**

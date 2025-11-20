@@ -96,7 +96,13 @@ export function CreateElection() {
   };
 
   const handleSubmit = async () => {
-    if (!validateForm()) return;
+    console.log('[CreateElection] handleSubmit called');
+    console.log('[CreateElection] Form data:', formData);
+    
+    if (!validateForm()) {
+      console.log('[CreateElection] Validation failed');
+      return;
+    }
 
     try {
       setIsSubmitting(true);
@@ -109,14 +115,19 @@ export function CreateElection() {
         allowMultipleVotes: formData.votingType === 'multiple',
       };
 
+      console.log('[CreateElection] Election data to send:', electionData);
+
       if (editingElection) {
         // Actualizar elección existente
+        console.log('[CreateElection] Updating election:', editingElection);
         await electionsApi.update(editingElection, electionData as UpdateElectionDto);
         showToast('success', 'Elección actualizada exitosamente');
         logger.info('Election updated', { id: editingElection });
       } else {
         // Crear nueva elección
-        await electionsApi.create(electionData);
+        console.log('[CreateElection] Creating new election');
+        const result = await electionsApi.create(electionData);
+        console.log('[CreateElection] Election created successfully:', result);
         showToast('success', 'Elección creada exitosamente');
         logger.info('Election created', { title: formData.title });
       }
@@ -139,7 +150,8 @@ export function CreateElection() {
       }
       
       showToast('error', errorMessage);
-      console.error('Election save error details:', error);
+      console.error('[CreateElection] Error details:', error);
+      console.error('[CreateElection] Error response:', (error as any)?.response);
     } finally {
       setIsSubmitting(false);
     }

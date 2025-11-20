@@ -22,6 +22,7 @@ export class ElectionsService {
    * Crear nueva elección (Solo ADMIN)
    */
   async create(createElectionDto: CreateElectionDto): Promise<Election> {
+    console.log('[ElectionsService] create called with:', createElectionDto);
     const { startDate, endDate, ...rest } = createElectionDto;
 
     // Validar fechas
@@ -29,13 +30,23 @@ export class ElectionsService {
     const end = new Date(endDate);
     const now = new Date();
 
+    console.log('[ElectionsService] Date validation:', {
+      start: start.toISOString(),
+      end: end.toISOString(),
+      now: now.toISOString(),
+      startBeforeEnd: start < end,
+      endAfterNow: end > now,
+    });
+
     if (start >= end) {
+      console.error('[ElectionsService] Start date must be before end date');
       throw new BadRequestException(
         'La fecha de inicio debe ser anterior a la fecha de fin',
       );
     }
 
     if (end <= now) {
+      console.error('[ElectionsService] End date must be in the future');
       throw new BadRequestException(
         'La fecha de fin debe ser posterior a la fecha actual',
       );
@@ -52,7 +63,10 @@ export class ElectionsService {
       status: ElectionStatus.DRAFT,
     });
 
-    return await this.electionRepository.save(election);
+    console.log('[ElectionsService] Election entity created, saving...');
+    const saved = await this.electionRepository.save(election);
+    console.log('[ElectionsService] Election saved successfully:', saved.id);
+    return saved;
   }
 
   /**
